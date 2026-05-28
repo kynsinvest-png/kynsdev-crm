@@ -1,0 +1,2063 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>KynsDev CRM</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--navy:#0F2544;--navy2:#1a3560;--gold:#F4B942;--green:#16A34A;--red:#DC2626;--orange:#D97706;--purple:#7C3AED;--blue:#1D4ED8;--g50:#F8F9FA;--g100:#F3F4F6;--g200:#E5E7EB;--g400:#9CA3AF;--g500:#6B7280;--g700:#374151;--white:#fff;--mono:'Courier New',monospace;--r:10px}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g50);color:var(--g700);min-height:100vh}
+.shell{display:flex;min-height:100vh}
+.sidebar{width:210px;background:var(--navy);flex-shrink:0;display:flex;flex-direction:column}
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sb-logo h1{font-size:14px;font-weight:700;color:var(--gold)}
+.sb-logo p{font-size:11px;opacity:.5;margin-top:2px}
+.sb-nav{padding:10px 8px;flex:1}
+.sbi{display:flex;align-items:center;gap:10px;padding:9px 12px;border-radius:8px;font-size:13px;color:rgba(255,255,255,.65);cursor:pointer;margin-bottom:2px;transition:all .15s;user-select:none}
+.sbi:hover{background:rgba(255,255,255,.1);color:#fff}
+.sbi.active{background:var(--gold);color:var(--navy);font-weight:700}
+.sb-foot{padding:10px 14px;border-top:1px solid rgba(255,255,255,.1);font-size:10px;opacity:.4}
+.main{flex:1;padding:22px;overflow-y:auto;max-height:100vh}
+.page{display:none}.page.active{display:block}
+.tbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:10px;flex-wrap:wrap}
+.tbar h2{font-size:18px;font-weight:700;color:var(--navy)}
+.sub{font-size:12px;color:var(--g400);margin-top:2px}
+.card{background:var(--white);border-radius:var(--r);padding:16px;border:1px solid var(--g200);margin-bottom:14px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.ctitle{font-size:13px;font-weight:700;color:var(--navy);margin-bottom:12px;display:flex;align-items:center;justify-content:space-between}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin-bottom:14px}
+.st{background:var(--white);border-radius:var(--r);padding:14px;border:1px solid var(--g200);text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.sv{font-size:22px;font-weight:700;color:var(--navy)}.sl{font-size:11px;color:var(--g400);margin-top:2px}
+.st.g .sv{color:var(--green)}.st.o .sv{color:var(--orange)}.st.r .sv{color:var(--red)}.st.p .sv{color:var(--purple)}
+.tw{overflow-x:auto;border-radius:8px;border:1px solid var(--g200)}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:var(--navy);color:#fff;padding:9px 12px;text-align:left;font-size:11px;font-weight:600;white-space:nowrap}
+td{padding:9px 12px;border-bottom:1px solid var(--g100);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--g50)}
+tfoot tr td{padding:10px 12px}
+.bx{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:600;white-space:nowrap}
+.bg{background:#DCFCE7;color:#166534}.bo{background:#FEF3C7;color:#92400E}.br{background:#FEE2E2;color:#991B1B}.bn{background:var(--g100);color:var(--g500)}.bp{background:#EDE9FE;color:#5B21B6}
+.btn{display:inline-flex;align-items:center;gap:5px;padding:7px 13px;border-radius:7px;font-size:12px;font-weight:600;cursor:pointer;border:none;transition:all .15s;white-space:nowrap}
+.bn2{background:var(--navy);color:#fff}.bg2{background:var(--green);color:#fff}.bgold{background:var(--gold);color:var(--navy)}.bp2{background:var(--purple);color:#fff}.br2{background:var(--red);color:#fff}
+.bgh{background:transparent;border:1.5px solid var(--g200);color:var(--g700)}.bgh:hover{border-color:var(--navy);color:var(--navy)}
+.bsm{padding:4px 9px;font-size:11px}
+.fld{margin-bottom:11px}
+.fld label{display:block;font-size:11px;font-weight:600;color:var(--navy);margin-bottom:4px}
+.fld input,.fld select{width:100%;padding:7px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:inherit;outline:none}
+.fld input:focus,.fld select:focus{border-color:var(--navy)}
+.fld .hp{font-size:10px;color:var(--g400);margin-top:2px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:1000;align-items:center;justify-content:center;padding:16px}
+.modal-bg.open{display:flex}
+.modal{background:#fff;border-radius:14px;padding:20px;width:100%;max-width:500px;max-height:90vh;overflow-y:auto}
+.mt2{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.mt2 h3{font-size:14px;font-weight:700;color:var(--navy)}
+.mclose{background:none;border:none;font-size:20px;cursor:pointer;color:var(--g400)}
+.mclose:hover{color:var(--red)}
+.ae{padding:8px 12px;border-radius:7px;font-size:12px;margin-bottom:10px}
+.ae-e{background:#FEE2E2;color:#991B1B;border:1px solid #FECACA}
+.ae-s{background:#DCFCE7;color:#166534;border:1px solid #BBF7D0}
+.ae-i{background:#EFF6FF;color:#1E40AF;border:1px solid #BFDBFE}
+.keybox{font-family:var(--mono);font-size:14px;font-weight:700;letter-spacing:2px;background:var(--navy);color:var(--gold);padding:12px;border-radius:8px;text-align:center;cursor:pointer;border:none;width:100%;word-break:break-all}
+.pgb{height:4px;background:var(--g200);border-radius:99px;overflow:hidden;margin-top:3px}
+.pgbf{height:100%;border-radius:99px}
+.inp{padding:7px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:inherit;outline:none;width:100%}
+.inp:focus{border-color:var(--navy)}
+
+  /* ── LOGIN ── */
+  .login-screen{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:9999}
+  .login-box{background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .login-logo{font-size:48px;margin-bottom:12px}
+  .login-title{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:4px}
+  .login-sub{font-size:13px;color:var(--g400);margin-bottom:28px}
+  .login-input{width:100%;padding:12px 16px;border:2px solid var(--g200);border-radius:10px;font-size:16px;text-align:center;letter-spacing:6px;font-family:var(--mono);outline:none;transition:border .2s;margin-bottom:8px}
+  .login-input:focus{border-color:var(--navy)}
+  .login-btn{width:100%;padding:13px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;transition:background .2s}
+  .login-btn:hover{background:var(--navy2)}
+  .login-err{color:var(--red);font-size:12px;min-height:18px;margin-top:4px}
+  .login-footer{font-size:11px;color:var(--g400);margin-top:20px}
+</style>
+</head>
+<body>
+
+<!-- ══ ÉCRAN DE CONNEXION ══ -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">⚡</div>
+    <div class="login-title">KynsDev CRM</div>
+    <div class="login-sub">Gestion des licences · Accès sécurisé</div>
+    <input type="password" id="login-pwd" class="login-input" placeholder="• • • • • •"
+      maxlength="20" onkeydown="if(event.key==='Enter')checkLogin()"
+      autocomplete="current-password"/>
+    <div class="login-err" id="login-err"></div>
+    <button class="login-btn" onclick="checkLogin()">🔓 Accéder au CRM</button>
+    <div class="login-footer">KynsDev · kynsinvest@gmail.com</div>
+  </div>
+</div>
+
+<div class="shell" id="crm-shell" style="display:none">
+<div class="sidebar">
+  <div class="sb-logo" ondblclick="toggleConfigMenu()" title="Double-cliquer pour la configuration" style="cursor:pointer">
+  <h1>⚡ KynsDev CRM</h1>
+  <p>Gestion des licences</p>
+  <div id="sync-indicator" style="display:flex;align-items:center;gap:6px;margin-top:8px;font-size:11px;opacity:.8">
+    <div id="sync-dot" style="width:8px;height:8px;border-radius:50%;background:#9CA3AF;flex-shrink:0"></div>
+    <span id="sync-label">Non connecté</span>
+  </div>
+</div>
+  <div class="sb-nav">
+    <div class="sbi active" onclick="nav('dashboard')">📊 Tableau de bord</div>
+    <div class="sbi" onclick="nav('clients')">👥 Clients</div>
+    <div class="sbi" onclick="nav('generateur')">🔑 Générer clé</div>
+    <div class="sbi" onclick="nav('tarifs')">💰 Tarifs</div>
+    <div class="sbi" onclick="nav('rapports')">📈 Rapport Licences</div>
+    <div class="sbi" onclick="nav('rapportSms')">📊 Rapport SMS</div>
+    <div class="sbi" onclick="nav('historique')">📋 Historique</div>
+    <div class="sbi" onclick="nav('sms')">💬 Ventes SMS</div>
+    <!-- Config accessible via double-clic sur le logo -->
+    <div id="sbi-config" style="display:none" class="sbi" onclick="nav('config')">⚙️ Configuration</div>
+  </div>
+  <div class="sb-foot" style="display:flex;align-items:center;justify-content:space-between">
+    <button onclick="logout()" style="background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:10px">🚪 Quitter</button><div id="sync-dot" title="Non configuré" style="width:8px;height:8px;border-radius:50%;background:#9CA3AF;flex-shrink:0"></div><span>KynsDev © 2026</span></div>
+</div>
+<div class="main">
+
+<!-- DASHBOARD -->
+<div class="page active" id="page-dashboard">
+  <div class="tbar"><div><h2>Tableau de bord</h2><div class="sub" id="d-date"></div></div>
+    <button class="btn bp2" onclick="nav('generateur')">🔑 Nouvelle licence</button></div>
+  <div class="sgrid" id="d-stats"></div>
+  <!-- Répartition par formule -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px">
+    <div class="card"><div class="ctitle">📦 Répartition par formule</div><div id="d-formules"></div></div>
+    <div class="card"><div class="ctitle">💰 CA par formule (total)</div><div id="d-ca-formules"></div></div>
+  </div>
+  <div class="card"><div class="ctitle">⚠️ Expirations dans 30 jours</div><div id="d-exp30"></div></div>
+  <div class="card"><div class="ctitle">🔴 Licences expirées</div><div id="d-expd"></div></div>
+</div>
+
+<!-- CLIENTS -->
+<div class="page" id="page-clients">
+  <div class="tbar"><div><h2>Clients</h2><div class="sub" id="cl-cnt"></div></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <select id="cl-ft" onchange="rClients()" class="inp" style="width:130px">
+        <option value="">Tous</option><option value="payant">💳 Payants</option><option value="essai">🎁 Essai</option></select>
+      <input id="cl-q" type="text" placeholder="🔍 Rechercher…" oninput="rClients()" class="inp" style="width:170px"/>
+      <button class="btn bn2" onclick="openAdd()">+ Ajouter</button></div></div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tw" style="border:none"><table>
+      <thead><tr><th>Mutuelle</th><th>Contact</th><th>Tél</th><th>Tranche</th><th>Formule</th><th>Expiration</th><th>Restant</th><th>Statut</th><th>Actions</th></tr></thead>
+      <tbody id="cl-tb"></tbody></table></div></div>
+</div>
+
+<!-- GENERATEUR -->
+<div class="page" id="page-generateur">
+  <div class="tbar"><div><h2>Générer une clé</h2><div class="sub">Créer ou renouveler une licence</div></div></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:860px">
+    <div class="card">
+      <div class="ctitle">📝 Paramètres</div>
+      <div class="fld"><label>Client existant</label><select id="g-cl" onchange="onPickCl()" class="inp"></select></div>
+      <div class="fld"><label>Nom mutuelle *</label><input type="text" id="g-nom" class="inp" placeholder="MUTUELLE MASEB" oninput="this.value=this.value.toUpperCase()"/>
+        <div class="hp">Exactement comme dans l'application</div></div>
+
+      <!-- Formule d'abonnement -->
+      <div class="fld"><label>Formule d'abonnement</label>
+        <select id="g-offre" class="inp" onchange="onPickOffre()">
+          <option value="">— Sélectionner une formule —</option>
+        </select>
+        <div class="hp" id="g-offre-info" style="color:var(--purple);font-weight:600;margin-top:4px"></div>
+      </div>
+      <div class="fld"><label>Nombre de mois payés</label>
+        <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px">
+          <button class="btn bgh bsm" onclick="setMois(1)">1 mois</button>
+          <button class="btn bgh bsm" onclick="setMois(2)">2 mois</button>
+          <button class="btn bgh bsm" onclick="setMois(3)">3 mois</button>
+          <button class="btn bgh bsm" onclick="setMois(6)">6 mois</button>
+          <button class="btn bgh bsm" onclick="setMois(12)">1 an</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <input type="number" id="g-nbmois" class="inp" placeholder="Ex: 3" min="1" step="1" oninput="calcMontant()" style="max-width:130px"/>
+          <span style="font-size:12px;color:var(--g500)">mois</span>
+        </div>
+      </div>
+
+      <div class="fld"><label>Date d'expiration <span style="font-weight:400;color:var(--g400);font-size:10px">(calculée automatiquement)</span></label>
+        <input type="date" id="g-exp" class="inp"/>
+        <div class="hp" id="g-eh" style="color:var(--blue)"></div>
+      </div>
+
+      <!-- Récapitulatif -->
+      <div id="g-calc-recap" style="display:none;background:var(--g50);border:1.5px solid var(--g200);border-radius:8px;padding:12px;margin-bottom:12px;font-size:12px">
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--g500)">Formule</span><span id="rc-offre" style="font-weight:700;color:var(--purple)"></span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--g500)">Prix unitaire × mois</span><span id="rc-unit" style="font-weight:600"></span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--g500)">Remise</span><span id="rc-rem" style="font-weight:600;color:var(--red)"></span></div>
+        <div style="display:flex;justify-content:space-between;margin-bottom:4px" id="rc-act-row" style="display:none"><span style="color:var(--g500)">Frais activation</span><span id="rc-act" style="font-weight:600;color:var(--gold)"></span></div>
+        <div style="border-top:1px solid var(--g200);padding-top:8px;display:flex;justify-content:space-between">
+          <span style="font-weight:700;color:var(--navy)">TOTAL</span>
+          <span id="rc-total" style="font-size:15px;font-weight:700;color:var(--green)"></span>
+        </div>
+      </div>
+
+      <div class="fr">
+        <div class="fld"><label>Montant (FCFA) <span style="font-weight:400;font-size:10px;color:var(--g400)">modifiable</span></label>
+          <input type="number" id="g-mnt" class="inp" placeholder="0" step="100" oninput="updateRecap()"/></div>
+        <div class="fld"><label>Remise</label><select id="g-rem" class="inp" onchange="calcMontant()"></select></div>
+      </div>
+      <!-- Mode essai gratuit -->
+      <div class="fld">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer">
+          <input type="checkbox" id="g-essai" onchange="toggleEssai()" style="width:16px;height:16px;accent-color:var(--gold)"/>
+          <span>🎁 Offrir une période d'essai gratuit</span>
+        </label>
+        <div id="g-essai-block" style="display:none;margin-top:8px;background:#FFFBEB;border:1.5px solid var(--gold);border-radius:8px;padding:10px">
+          <div class="hp" style="color:var(--orange);font-size:12px">En mode essai : montant = 0 FCFA · la clé est valide pour la durée sélectionnée</div>
+        </div>
+      </div>
+
+      <div class="fld" id="g-actblk"><label>⭐ Frais activation (FCFA) <span style="font-weight:400;font-size:10px;color:var(--g400)">paiement unique — 0 si déjà payé</span></label>
+        <input type="number" id="g-act" class="inp" placeholder="0" step="500" oninput="calcActTotal()"/>
+        <div class="hp" id="g-act-suggest" style="color:var(--gold)"></div>
+      </div>
+      <div class="fld"><label>Note</label><input type="text" id="g-note" class="inp" placeholder="Ex: Renouvellement 3 mois"/></div>
+      <button class="btn bgold" style="width:100%;justify-content:center;padding:11px;font-size:13px" onclick="genKey()">⚡ Générer la clé</button>
+    </div>
+    <div class="card" id="g-res" style="display:none">
+      <div class="ctitle">✅ Clé générée</div>
+      <div class="fld"><label>Mutuelle</label><div id="r-nom" style="font-size:14px;font-weight:700;color:var(--navy);padding:4px 0"></div></div>
+      <div class="fld"><label>Expiration</label><div id="r-exp" style="font-size:14px;font-weight:700;color:var(--green);padding:4px 0"></div></div>
+      <div class="fld"><label>Montant total</label><div id="r-tot" style="font-size:15px;font-weight:700;color:var(--navy);padding:4px 0"></div></div>
+      <div class="fld"><label>Clé (cliquer pour copier)</label>
+        <button class="keybox" id="r-key" onclick="copyKey()"></button>
+        <div id="r-cp" style="font-size:11px;color:var(--green);text-align:center;margin-top:4px;min-height:14px"></div></div>
+      <div class="ae ae-i" id="r-wa" style="font-size:11px;line-height:1.7"></div>
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button class="btn bg2 bsm" onclick="copyWA()" style="flex:1;justify-content:center">💬 Copier WhatsApp</button>
+        <button class="btn bn2 bsm" onclick="saveGen()" style="flex:1;justify-content:center">💾 Sauvegarder</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- TARIFS -->
+<div class="page" id="page-tarifs">
+  <div class="tbar"><div><h2>Tarifs & Prix</h2><div class="sub">Configuration des prix et remises</div></div>
+    <button class="btn bg2" onclick="saveTarifs()">💾 Enregistrer</button></div>
+  <div class="card" style="border-left:4px solid var(--gold)">
+    <div class="ctitle">⭐ Frais d'activation (paiement unique)</div>
+    <div style="font-size:12px;color:var(--g400);margin-bottom:12px">Facturé une seule fois lors du premier achat, après la période d'essai</div>
+    <div class="fr">
+      <div class="fld"><label>Montant (FCFA)</label><input type="number" id="t-act" class="inp" placeholder="10000" step="500"/></div>
+      <div class="fld"><label>Description</label><input type="text" id="t-actd" class="inp" placeholder="Mise en place et configuration"/></div>
+    </div>
+  </div>
+
+  <div class="card" style="border-left:4px solid var(--purple)">
+    <div class="ctitle">📦 Offres d'abonnement par tranche
+      <button class="btn bgh bsm" onclick="addORow()">+ Ajouter une offre</button>
+    </div>
+    <div style="font-size:12px;color:var(--g400);margin-bottom:12px">Configurez vos offres selon le nombre de membres de l'association</div>
+    <div style="display:grid;grid-template-columns:1fr 80px 80px 140px 1fr 36px;gap:8px;margin-bottom:6px">
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Nom de l'offre</div>
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Min membres</div>
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Max membres</div>
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Prix/mois (FCFA)</div>
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Description</div>
+      <div></div>
+    </div>
+    <div id="o-rows"></div>
+  </div>
+
+  <div class="card" style="border-left:4px solid var(--navy);display:none">
+    <div class="ctitle">🔄 Durées de licence <button class="btn bgh bsm" onclick="addTRow()">+ Ajouter</button></div>
+    <div style="display:grid;grid-template-columns:90px 1fr 140px 36px;gap:8px;margin-bottom:6px">
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Durée (j)</div>
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Label</div>
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Prix (FCFA)</div>
+      <div></div>
+    </div>
+    <div id="t-rows"></div>
+  </div>
+
+  <!-- Packs SMS configurables -->
+  <div class="card" style="border-left:4px solid var(--blue)">
+    <div class="ctitle">💬 Packs SMS
+      <button class="btn bgh bsm" onclick="addSmsPackRow()">+ Ajouter</button>
+    </div>
+    <div style="font-size:12px;color:var(--g500);margin-bottom:12px">Prix de vente et coût d'achat par pack — le bénéfice est calculé automatiquement</div>
+    <div style="display:grid;grid-template-columns:1fr 70px 130px 130px 110px 36px;gap:8px;margin-bottom:6px">
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Nom du pack</div>
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">SMS</div>
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Prix vente (FCFA)</div>
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Coût achat (FCFA)</div>
+      <div style="font-size:11px;font-weight:600;color:var(--green)">Bénéfice</div>
+      <div></div>
+    </div>
+    <div id="sms-pack-rows"></div>
+  </div>
+
+  <div class="card" style="border-left:4px solid var(--green)">
+    <div class="ctitle">🎁 Remises <button class="btn bgh bsm" onclick="addRRow()">+ Ajouter</button></div>
+    <div style="display:grid;grid-template-columns:1fr 95px 110px 1fr 36px;gap:8px;margin-bottom:6px">
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Nom</div>
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Type</div>
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Valeur</div>
+      <div style="font-size:11px;font-weight:600;color:var(--g500)">Condition</div>
+      <div></div>
+    </div>
+    <div id="r-rows"></div>
+  </div>
+  <div class="card" style="background:var(--navy);color:#fff">
+    <div style="font-size:13px;font-weight:700;color:var(--gold);margin-bottom:10px">📊 Aperçu tarifaire</div>
+    <div id="t-ap" style="font-size:13px;line-height:2"></div>
+  </div>
+</div>
+
+<!-- RAPPORTS -->
+<div class="page" id="page-rapports">
+  <div class="tbar"><div><h2>Rapports financiers</h2><div class="sub">CA par période — multi-années</div></div>
+    <button class="btn bgh bsm" onclick="exportRapCSV()">⬇ Export CSV</button></div>
+  <div class="card">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div class="fld" style="margin:0;flex:1;min-width:110px"><label>Grouper par</label>
+        <select id="rp-per" onchange="rRap()" class="inp">
+          <option value="mois">Par mois</option>
+          <option value="trimestre">Par trimestre</option>
+          <option value="annee">Par année</option>
+        </select>
+      </div>
+      <div class="fld" style="margin:0;flex:1;min-width:100px"><label>Année</label>
+        <select id="rp-annee" onchange="rRap()" class="inp"></select>
+      </div>
+      <div class="fld" style="margin:0;flex:1;min-width:100px" id="rp-mois-block">
+        <label id="rp-mois-label">Mois</label>
+        <select id="rp-mois" onchange="rRap()" class="inp">
+          <option value="">Toute l'année</option>
+          <option value="01">Janvier</option>
+          <option value="02">Février</option>
+          <option value="03">Mars</option>
+          <option value="04">Avril</option>
+          <option value="05">Mai</option>
+          <option value="06">Juin</option>
+          <option value="07">Juillet</option>
+          <option value="08">Août</option>
+          <option value="09">Septembre</option>
+          <option value="10">Octobre</option>
+          <option value="11">Novembre</option>
+          <option value="12">Décembre</option>
+        </select>
+        <select id="rp-trim" onchange="rRap()" class="inp" style="display:none">
+          <option value="">Tous les trimestres</option>
+          <option value="T1">T1 — Jan, Fév, Mar</option>
+          <option value="T2">T2 — Avr, Mai, Jun</option>
+          <option value="T3">T3 — Jul, Aoû, Sep</option>
+          <option value="T4">T4 — Oct, Nov, Déc</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="sgrid" id="rp-st"></div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tw" style="border:none"><table>
+      <thead><tr id="rp-th"></tr></thead>
+      <tbody id="rp-tb"></tbody>
+      <tfoot id="rp-tf"></tfoot>
+    </table></div>
+  </div>
+  <!-- Répartition formules dans les rapports -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card"><div class="ctitle">📦 CA par formule sur la période</div><div id="rp-formules"></div></div>
+    <div class="card"><div class="ctitle">📊 Licences par formule</div><div id="rp-formules-nb"></div></div>
+  </div>
+</div>
+
+<!-- HISTORIQUE -->
+<div class="page" id="page-historique">
+  <div class="tbar"><div><h2>Historique</h2><div class="sub" id="h-cnt"></div></div>
+    <button class="btn bgh bsm" onclick="exportH()">⬇ CSV</button></div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tw" style="border:none"><table>
+      <thead><tr><th>Date</th><th>Mutuelle</th><th>Clé de licence</th><th>Remise</th><th>Expiration</th><th>Durée</th><th>Formule</th><th>Abonnement</th><th>Activation</th><th>Total</th><th>Note</th></tr></thead>
+      <tbody id="h-tb"></tbody></table></div></div>
+</div>
+
+
+<!-- SMS -->
+<div class="page" id="page-sms">
+  <div class="tbar">
+    <div><h2>💬 Ventes SMS</h2><div class="sub">Suivi des ventes de packages SMS</div></div>
+    <button class="btn bn2" onclick="openAddSms()">+ Enregistrer une vente</button>
+  </div>
+  <div class="sgrid" id="sms-stats"></div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tw" style="border:none"><table>
+      <thead><tr>
+        <th>Date</th><th>Client</th><th>Package</th><th>SMS</th>
+        <th>Prix vendu</th><th>Coût achat</th><th>Bénéfice</th><th>Note</th><th></th>
+      </tr></thead>
+      <tbody id="sms-tb"></tbody>
+    </table></div>
+  </div>
+</div>
+
+
+<!-- RAPPORT SMS -->
+<div class="page" id="page-rapportSms">
+  <div class="tbar">
+    <div><h2>📊 Rapport SMS</h2><div class="sub">Ventes et bénéfices des packs SMS</div></div>
+    <button class="btn bgh bsm" onclick="exportRapSmsCSV()">⬇ Export CSV</button>
+  </div>
+  <div class="card">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end">
+      <div class="fld" style="margin:0;flex:1;min-width:110px"><label>Grouper par</label>
+        <select id="sms-rp-per" onchange="rRapSms()" class="inp">
+          <option value="mois">Par mois</option>
+          <option value="trimestre">Par trimestre</option>
+          <option value="annee">Par année</option>
+        </select>
+      </div>
+      <div class="fld" style="margin:0;flex:1;min-width:100px"><label>Année</label>
+        <select id="sms-rp-annee" onchange="rRapSms()" class="inp"></select>
+      </div>
+      <div class="fld" style="margin:0;flex:1;min-width:100px" id="sms-rp-mois-block">
+        <label id="sms-rp-lbl">Mois</label>
+        <select id="sms-rp-mois" onchange="rRapSms()" class="inp">
+          <option value="">Toute l'année</option>
+          <option value="01">Janvier</option><option value="02">Février</option>
+          <option value="03">Mars</option><option value="04">Avril</option>
+          <option value="05">Mai</option><option value="06">Juin</option>
+          <option value="07">Juillet</option><option value="08">Août</option>
+          <option value="09">Septembre</option><option value="10">Octobre</option>
+          <option value="11">Novembre</option><option value="12">Décembre</option>
+        </select>
+        <select id="sms-rp-trim" onchange="rRapSms()" class="inp" style="display:none">
+          <option value="">Tous les trimestres</option>
+          <option value="T1">T1 — Jan, Fév, Mar</option>
+          <option value="T2">T2 — Avr, Mai, Jun</option>
+          <option value="T3">T3 — Jul, Aoû, Sep</option>
+          <option value="T4">T4 — Oct, Nov, Déc</option>
+        </select>
+      </div>
+    </div>
+  </div>
+  <div class="sgrid" id="sms-rp-st"></div>
+  <div class="card" style="padding:0;overflow:hidden">
+    <div class="tw" style="border:none"><table>
+      <thead><tr id="sms-rp-th"></tr></thead>
+      <tbody id="sms-rp-tb"></tbody>
+      <tfoot id="sms-rp-tf"></tfoot>
+    </table></div>
+  </div>
+  <!-- Répartition par pack -->
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+    <div class="card"><div class="ctitle">📦 CA par pack</div><div id="sms-rp-packs"></div></div>
+    <div class="card"><div class="ctitle">💰 Bénéfice par pack</div><div id="sms-rp-ben"></div></div>
+  </div>
+</div>
+
+<!-- CONFIG -->
+<div class="page" id="page-config">
+  <div class="tbar"><div><h2>⚙️ Configuration</h2><div class="sub">Connexion Google Sheets — multi-poste</div></div></div>
+  <div class="card" style="border-left:4px solid var(--navy);max-width:600px">
+    <div class="ctitle">🔗 URL Google Apps Script</div>
+    <div style="font-size:12px;color:var(--g500);margin-bottom:14px;line-height:1.7">
+      Déployez <code style="background:var(--g100);padding:2px 6px;border-radius:4px">kynsdev_crm_gas.gs</code> dans Apps Script et collez l'URL ici.<br>
+      Toutes les données seront synchronisées sur tous vos postes automatiquement.
+    </div>
+    <div id="cfg-embed-info" class="ae" style="display:none;margin-bottom:12px"></div>
+    <div class="fld"><label>URL de déploiement</label>
+      <input type="text" id="cfg-url" class="inp" placeholder="https://script.google.com/macros/s/XXXX/exec"/>
+      <div class="hp">Format exact : https://script.google.com/macros/s/.../exec</div>
+    </div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn bg2" onclick="saveConfig()" style="flex:1;justify-content:center">💾 Enregistrer et synchroniser</button>
+      <button class="btn bgh" onclick="testConfig()">🔍 Tester</button>
+    </div>
+    <div id="cfg-status" class="ae" style="display:none;margin-top:12px"></div>
+  </div>
+  <div class="card" style="max-width:600px">
+    <div class="ctitle">📊 Statut de synchronisation</div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+      <div id="cfg-dot" style="width:12px;height:12px;border-radius:50%;background:#9CA3AF;flex-shrink:0"></div>
+      <div id="cfg-lbl" style="font-size:13px;color:var(--g500)">Non configuré</div>
+    </div>
+    <button class="btn bgh bsm" onclick="forceSyncNow()">🔄 Synchroniser maintenant</button>
+  </div>
+  <div class="card" style="max-width:600px;border-left:4px solid var(--red)">
+    <div class="ctitle">🔐 Changer le code d'accès</div>
+    <div style="font-size:12px;color:var(--g500);margin-bottom:12px">Le code par défaut est <strong>123</strong> — changez-le immédiatement.</div>
+    <div class="frow">
+      <div class="fld"><label>Ancien code</label><input type="password" id="pwd-old" class="inp" placeholder="Ancien code"/></div>
+      <div class="fld"><label>Nouveau code</label><input type="password" id="pwd-new" class="inp" placeholder="Nouveau code (min 4 car.)"/></div>
+    </div>
+    <div class="fld"><label>Confirmer nouveau code</label><input type="password" id="pwd-conf" class="inp" placeholder="Répéter le nouveau code"/></div>
+    <button class="btn br2" onclick="submitChangePwd()" style="margin-top:4px">🔐 Changer le code</button>
+    <div id="pwd-msg" style="font-size:12px;margin-top:8px;min-height:16px"></div>
+  </div>
+
+  <div class="card" style="max-width:600px">
+    <div class="ctitle">📖 Guide rapide</div>
+    <div style="font-size:13px;color:var(--g700);line-height:2.2">
+      <div>1. Créer un <strong>Google Sheets</strong> vierge → <em>KynsDev CRM</em></div>
+      <div>2. <strong>Extensions → Apps Script</strong> → coller <code style="background:var(--g100);padding:2px 6px;border-radius:4px">kynsdev_crm_gas.gs</code></div>
+      <div>3. Exécuter la fonction <strong>setup</strong> → Autoriser</div>
+      <div>4. <strong>Déployer → Nouvelle application web</strong><br>
+        <span style="padding-left:16px;color:var(--g500)">Exécuter en tant que : <strong>Moi</strong> · Accès : <strong>Tout le monde</strong></span>
+      </div>
+      <div>5. Copier l'URL → coller ci-dessus → <strong>Enregistrer</strong></div>
+    </div>
+  </div>
+</div>
+
+</div></div>
+
+
+<!-- MODAL VENTE SMS -->
+<div class="modal-bg" id="m-sms">
+  <div class="modal" style="max-width:460px">
+    <div class="mt2"><h3 id="msms-t">Enregistrer une vente SMS</h3><button class="mclose" onclick="CM('m-sms')">✕</button></div>
+    <div class="fld"><label>Client (optionnel)</label>
+      <select id="msms-cl" class="inp"><option value="">— Client libre —</option></select>
+    </div>
+    <div class="fld"><label>Package SMS</label>
+      <div style="display:flex;flex-direction:column;gap:8px" id="msms-packs"></div>
+    </div>
+    <div class="frow">
+      <div class="fld"><label>Quantité vendue</label>
+        <input type="number" id="msms-qty" class="inp" value="1" min="1" oninput="calcSmsTotal()"/>
+      </div>
+      <div class="fld"><label>Date de vente</label>
+        <input type="date" id="msms-date" class="inp"/>
+      </div>
+    </div>
+    <div id="msms-recap" style="display:none;background:var(--g50);border:1.5px solid var(--g200);border-radius:8px;padding:12px;margin-bottom:12px;font-size:12px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--g500)">Package</span><span id="msms-r-pack" style="font-weight:700;color:var(--purple)"></span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--g500)">Quantité</span><span id="msms-r-qty" style="font-weight:600"></span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--g500)">Prix de vente</span><span id="msms-r-prix" style="font-weight:600"></span></div>
+      <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="color:var(--g500)">Coût d'achat</span><span id="msms-r-cout" style="font-weight:600;color:var(--red)"></span></div>
+      <div style="border-top:1px solid var(--g200);padding-top:8px;display:flex;justify-content:space-between">
+        <span style="font-weight:700;color:var(--navy)">Bénéfice</span>
+        <span id="msms-r-ben" style="font-size:15px;font-weight:700;color:var(--green)"></span>
+      </div>
+    </div>
+    <div class="fld"><label>Note</label><input type="text" id="msms-note" class="inp" placeholder="Ex: Mutuelle MASEB — Rappels"/></div>
+    <div id="msms-err" class="ae ae-e" style="display:none"></div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn bgh" onclick="CM('m-sms')" style="flex:1;justify-content:center">Annuler</button>
+      <button class="btn bn2" onclick="saveSmsVente()" style="flex:1;justify-content:center">💾 Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CLIENT -->
+<div class="modal-bg" id="m-cl">
+  <div class="modal">
+    <div class="mt2"><h3 id="mcl-t">Nouveau client</h3><button class="mclose" onclick="CM('m-cl')">✕</button></div>
+    <div class="fld"><label>Sigle / Abréviation *</label>
+      <input type="text" id="mc-n" class="inp" placeholder="Ex: MASEB, CNPS-MUT…" oninput="this.value=this.value.toUpperCase()"/>
+      <div class="hp">Identifiant court utilisé dans l'application</div>
+    </div>
+    <div class="fld"><label>Nom complet de la mutuelle</label>
+      <input type="text" id="mc-desc" class="inp" placeholder="Ex: Mutuelle d'Aide Sociale des Employés de la Banque"/>
+    </div>
+    <div class="fr">
+      <div class="fld"><label>Contact</label><input type="text" id="mc-c" class="inp" placeholder="Responsable"/></div>
+      <div class="fld"><label>Téléphone</label><input type="text" id="mc-t" class="inp" placeholder="0701234567"/></div>
+    </div>
+    <div class="fr">
+      <div class="fld"><label>Email</label><input type="email" id="mc-e" class="inp" placeholder="email@ci"/></div>
+      <div class="fld"><label>Ville</label><input type="text" id="mc-v" class="inp" placeholder="Abidjan"/></div>
+    </div>
+
+    <div class="fld"><label>Tranche de membres</label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px" id="mc-tranches">
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;cursor:pointer;font-size:12px" id="lt1">
+          <input type="radio" name="mc-tranche" value="10-200" onchange="onTrancheChange('10-200')"/> 10 à 200 membres</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;cursor:pointer;font-size:12px" id="lt2">
+          <input type="radio" name="mc-tranche" value="201-550" onchange="onTrancheChange('201-550')"/> 201 à 550 membres</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;cursor:pointer;font-size:12px" id="lt3">
+          <input type="radio" name="mc-tranche" value="551-1000" onchange="onTrancheChange('551-1000')"/> 551 à 1 000 membres</label>
+        <label style="display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;cursor:pointer;font-size:12px" id="lt4">
+          <input type="radio" name="mc-tranche" value="1001+" onchange="onTrancheChange('1001+')"/> 1 001 membres et plus</label>
+      </div>
+      <div class="hp" id="mc-nbm-offre" style="color:var(--purple);font-weight:600;margin-top:6px"></div>
+    </div>
+    <div class="fr">
+      <div class="fld"><label>Frais activation (FCFA)</label>
+        <input type="number" id="mc-a" class="inp" placeholder="0" step="500"/>
+        <div class="hp">Paiement unique 1er achat</div></div>
+      <div class="fld"><label>Note</label><input type="text" id="mc-o" class="inp" placeholder="…"/></div>
+    </div>
+    <input type="hidden" id="mc-offre-hidden"/>
+    <div id="mc-err" class="ae ae-e" style="display:none"></div>
+    <div style="display:flex;gap:8px;margin-top:6px">
+      <button class="btn bgh" onclick="CM('m-cl')" style="flex:1;justify-content:center">Annuler</button>
+      <button class="btn bn2" onclick="saveCl()" style="flex:1;justify-content:center">Enregistrer</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL DETAIL -->
+<div class="modal-bg" id="m-dt">
+  <div class="modal" style="max-width:580px">
+    <div class="mt2"><h3 id="md-t">Détail client</h3><button class="mclose" onclick="CM('m-dt')">✕</button></div>
+    <div id="md-c"></div>
+  </div>
+</div>
+
+<script>
+// ══ AUTHENTIFICATION CRM ══
+// Code par défaut : 123 → CHANGER dans ⚙️ Configuration
+const CRM_PASSWORD_HASH='a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3';
+async function sha256Login(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+async function checkLogin(){
+  const pwd=document.getElementById('login-pwd').value;
+  const err=document.getElementById('login-err');
+  if(!pwd){err.textContent='Saisissez le code d\'accès.';return;}
+  const hash=await sha256Login(pwd);
+  const stored=localStorage.getItem('crm_pwd_hash')||CRM_PASSWORD_HASH;
+  if(hash===stored){
+    localStorage.setItem('crm_session',hash.substring(0,16));
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('crm-shell').style.display='flex';
+    err.textContent='';
+  } else {
+    err.textContent='❌ Code incorrect';
+    document.getElementById('login-pwd').value='';
+    document.getElementById('login-pwd').focus();
+  }
+}
+function checkSession(){
+  const session=localStorage.getItem('crm_session');
+  const stored=localStorage.getItem('crm_pwd_hash')||CRM_PASSWORD_HASH;
+  if(session&&session===stored.substring(0,16)){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('crm-shell').style.display='flex';
+    return true;
+  }
+  setTimeout(()=>document.getElementById('login-pwd')?.focus(),100);
+  return false;
+}
+function logout(){localStorage.removeItem('crm_session');location.reload();}
+async function changePassword(oldPwd,newPwd){
+  const stored=localStorage.getItem('crm_pwd_hash')||CRM_PASSWORD_HASH;
+  const oldHash=await sha256Login(oldPwd);
+  if(oldHash!==stored){alert('❌ Ancien code incorrect.');return false;}
+  if(!newPwd||newPwd.length<4){alert('Le nouveau code doit avoir au moins 4 caractères.');return false;}
+  const newHash=await sha256Login(newPwd);
+  localStorage.setItem('crm_pwd_hash',newHash);
+  // Mettre à jour la session avec le nouveau hash
+  localStorage.setItem('crm_session',newHash.substring(0,16));
+  return true;
+}
+async function submitChangePwd(){
+  const o=document.getElementById('pwd-old').value;
+  const n=document.getElementById('pwd-new').value;
+  const conf=document.getElementById('pwd-conf').value;
+  const msg=document.getElementById('pwd-msg');
+  if(n!==conf){msg.style.color='var(--red)';msg.textContent='❌ Les nouveaux codes ne correspondent pas.';return;}
+  const ok=await changePassword(o,n);
+  if(ok){
+    msg.style.color='var(--green)';
+    msg.textContent='✅ Code modifié avec succès !';
+    ['pwd-old','pwd-new','pwd-conf'].forEach(id=>document.getElementById(id).value='');
+  } else {
+    msg.style.color='var(--red)';msg.textContent='❌ Ancien code incorrect.';
+  }
+}
+const DBK='kynsdev_crm_v3',TK='kynsdev_tarifs_v3',MKEY='MUTUELLECI_VENDOR_2026';
+
+// ── URL GAS embarquée — remplacer une seule fois après déploiement GAS
+const EMBEDDED_GAS_URL = 'https://script.google.com/macros/s/AKfycbzUL1tv00Ga2ZaiVXBvgaKRmPSEz8ygVvZxEmFpMfEXYIXumje90iEJItDmf91GJiib/exec'; // ← REMPLACER
+
+let db=lsg(DBK)||{clients:[],historique:[]};
+let tarifs=lsg(TK)||dTar();
+function lsg(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
+function lss(k,v){localStorage.setItem(k,JSON.stringify(v));}
+function saveDB(){lss(DBK,db);}
+async function saveClientSheets(client){
+  if(!isOnline()) return;
+  setSyncStatus('loading','Sauvegarde…');
+  const r=await gasPost('saveClient',client);
+  setSyncStatus(r?.success?'ok':'err',r?.success?'Synchronisé ✅':'Erreur sync');
+}
+async function saveHistoSheets(histo){
+  if(!isOnline()) return;
+  await gasPost('saveHisto',histo);
+}
+async function saveTarifsSheets(){
+  if(!isOnline()) return;
+  await gasPost('saveTarifs',tarifs);
+}
+function saveTD(){lss(TK,tarifs);}
+
+// ═══ GAS CONFIG ═══
+function getGasUrl(){
+  // 1. URL configurée manuellement sur ce poste (priorité)
+  const local=localStorage.getItem('kynsdev_gas_url')||'';
+  if(local&&!local.includes('VOTRE_URL')) return local;
+  // 2. URL embarquée dans le fichier HTML
+  if(EMBEDDED_GAS_URL&&!EMBEDDED_GAS_URL.includes('VOTRE_URL')) return EMBEDDED_GAS_URL;
+  return '';
+}
+function setGasUrl(u){ localStorage.setItem('kynsdev_gas_url',u); }
+function isOnline(){ return !!getGasUrl(); }
+
+let _syncStatus='idle';
+function setSyncStatus(status){
+  _syncStatus=status;
+  const dot=document.getElementById('sync-dot');
+  const colors={ok:'#16A34A',err:'#DC2626',loading:'#F4B942',off:'#9CA3AF',idle:'#9CA3AF'};
+  if(dot) dot.style.background=colors[status]||'#9CA3AF';
+  updateCfgDot();
+}
+function updateCfgDot(){
+  const dot=document.getElementById('cfg-dot');
+  const lbl=document.getElementById('cfg-lbl');
+  if(!dot||!lbl) return;
+  const colors={ok:'#16A34A',err:'#DC2626',loading:'#F4B942',off:'#9CA3AF',idle:'#9CA3AF'};
+  const labels={ok:'Synchronisé ✅',err:'Erreur de connexion',loading:'Synchronisation…',off:'Non configuré',idle:'Non configuré'};
+  dot.style.background=colors[_syncStatus]||'#9CA3AF';
+  lbl.textContent=getGasUrl()?(labels[_syncStatus]||'Configuré'):'Non configuré — données locales uniquement';
+}
+
+// ── JSONP GET vers GAS
+function gasGet(action, params){
+  return new Promise(resolve=>{
+    const url=getGasUrl(); if(!url){ resolve(null); return; }
+    const cb='_crm_'+Date.now().toString(36);
+    let qs=`?action=${encodeURIComponent(action)}&callback=${cb}`;
+    if(params) Object.entries(params).forEach(([k,v])=>qs+=`&${k}=${encodeURIComponent(v)}`);
+    const timer=setTimeout(()=>{ delete window[cb]; resolve(null); },12000);
+    window[cb]=data=>{ clearTimeout(timer); delete window[cb]; resolve(data); };
+    const s=document.createElement('script');
+    s.src=url+qs; s.onerror=()=>{ clearTimeout(timer); resolve(null); };
+    document.head.appendChild(s); setTimeout(()=>s.remove(),15000);
+  });
+}
+
+// ── POST vers GAS avec secret
+async function gasPost(action, payload){
+  const url=getGasUrl(); if(!url) return null;
+  try {
+    await fetch(url,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({action, data:payload, secret:'KYNSDEV_CRM_2026'})});
+    return {success:true};
+  } catch(e){ return null; }
+}
+
+// ── Charger depuis Sheets
+async function loadFromSheets(){
+  const url=getGasUrl(); if(!url) return;
+  setSyncStatus('loading','Chargement…');
+  try {
+    const data=await gasGet('getAll');
+    if(data){
+      if(data.clients)    db.clients=data.clients;
+      if(data.historique) db.historique=data.historique;
+      saveDB();
+      const tar=await gasGet('getTarifs');
+      if(tar){ tarifs=tar; saveTD(); }
+      setSyncStatus('ok','Synchronisé ✅');
+    } else {
+      setSyncStatus('err','Erreur Sheets');
+    }
+  } catch(e){ setSyncStatus('err','Erreur réseau'); }
+}
+function dTar(){return{activation:10000,activationDesc:'Mise en place et configuration initiale',offres:[{nom:'ESSENTIEL',min:10,max:200,prix:2500,desc:'Idéal pour les petites associations'},{nom:'CONFORT',min:201,max:550,prix:3600,desc:'Pour les associations en croissance'},{nom:'PREMIUM',min:551,max:0,prix:5000,desc:'Grandes associations — illimité'}],abonnements:[{duree:30,label:'1 mois',prix:3600},{duree:60,label:'2 mois',prix:7000},{duree:90,label:'3 mois',prix:10000},{duree:180,label:'6 mois',prix:19000},{duree:365,label:'1 an',prix:36000}],remises:[{label:'Remise fidélité',type:'pct',valeur:10,condition:'Renouvellement'},{label:'Remise parrainage',type:'pct',valeur:15,condition:'Client parrainé'},{label:'Remise annuel',type:'fixe',valeur:2000,condition:'Abonnement 1 an'}]};}
+async function sha256(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+function jr(e){if(!e)return null;const d=new Date(e);d.setHours(23,59,59,999);return Math.ceil((d-new Date())/864e5);}
+function fd(d){return d?new Date(d).toLocaleDateString('fr-FR'):'—';}
+function fm(n){return n!=null&&n!==''?Number(n).toLocaleString('fr-FR')+' FCFA':'—';}
+function uid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,5);}
+function sbg(e){if(!e)return'<span class="bx bn">Sans licence</span>';const j=jr(e);if(j<=0)return'<span class="bx br">❌ Expirée</span>';if(j<=7)return`<span class="bx br">🔴 ${j}j</span>`;if(j<=30)return`<span class="bx bo">⚠️ ${j}j</span>`;return`<span class="bx bg">✅ ${j}j</span>`;}
+function nav(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.sbi').forEach(a=>a.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  const m={dashboard:0,clients:1,generateur:2,tarifs:3,rapports:4,rapportSms:5,historique:6,sms:7,config:8};
+  document.querySelectorAll('.sbi')[m[id]]?.classList.add('active');
+  ({dashboard:rDash,clients:rClients,generateur:rGen,tarifs:rTarifs,rapports:rRap,historique:rHist})[id]?.();
+}
+function OM(id){document.getElementById(id).classList.add('open');}
+function CM(id){document.getElementById(id).classList.remove('open');}
+document.querySelectorAll('.modal-bg').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('open');}));
+
+// DASHBOARD
+function rDash(){
+  document.getElementById('d-date').textContent=new Date().toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const cl=db.clients;
+  const actifs=cl.filter(c=>c.expiration&&jr(c.expiration)>0).length;
+  const e30=cl.filter(c=>c.expiration&&jr(c.expiration)>0&&jr(c.expiration)<=30).length;
+  const e7=cl.filter(c=>c.expiration&&jr(c.expiration)>0&&jr(c.expiration)<=7).length;
+  const ex=cl.filter(c=>!c.expiration||jr(c.expiration)<=0).length;
+  const ess=cl.filter(c=>c.type==='essai').length;
+  const ca=db.historique.reduce((s,h)=>s+(Number(h.abonnement)||0)+(Number(h.activation)||0),0);
+  const smsVentes=db.smsVentes||[];
+  const smsBen=smsVentes.reduce((s,v)=>s+(Number(v.benefice)||0)*(Number(v.qty)||1),0);
+  const smsCA=smsVentes.reduce((s,v)=>s+(Number(v.prixVente)||0)*(Number(v.qty)||1),0);
+
+  // Stats par formule
+  const formulesActives={};
+  db.clients.filter(c2=>c2.expiration&&jr(c2.expiration)>0).forEach(c2=>{
+    const f=c2.formule||'Non définie';
+    if(!formulesActives[f]) formulesActives[f]={nb:0,prix:0};
+    formulesActives[f].nb++;
+    const o=tarifs.offres?.find(x=>x.nom===f);
+    if(o) formulesActives[f].prix=o.prix;
+  });
+  // CA par formule depuis historique
+  const formulesCA={};
+  db.historique.forEach(h=>{
+    const f=h.offre||'Non définie';
+    if(!formulesCA[f]) formulesCA[f]=0;
+    formulesCA[f]+=(Number(h.abonnement)||0)+(Number(h.activation)||0);
+  });
+
+  // Render répartition
+  const fEl=document.getElementById('d-formules');
+  const fcEl=document.getElementById('d-ca-formules');
+  if(!fEl||!fcEl) return; // sécurité
+  const colors=['var(--purple)','var(--blue)','var(--green)','var(--orange)','var(--navy)'];
+  const totalActifs=Object.values(formulesActives).reduce((s,f)=>s+f.nb,0)||1;
+  fEl.innerHTML=Object.keys(formulesActives).length?Object.entries(formulesActives).map(([f,v],i)=>{
+    const pct=Math.round(v.nb/totalActifs*100);
+    const col=colors[i%colors.length];
+    return`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:12px;font-weight:600;color:${col}">${f}</span>
+        <span style="font-size:12px;color:var(--g500)">${v.nb} client(s) · ${pct}%${v.prix?' · '+Number(v.prix).toLocaleString('fr-FR')+' FCFA/mois':''}</span>
+      </div>
+      <div class="pgb"><div class="pgbf" style="width:${pct}%;background:${col}"></div></div>
+    </div>`;}).join('')
+    :'<p style="color:var(--g400);font-size:12px">Aucun client actif</p>';
+
+  const totalCA=Object.values(formulesCA).reduce((s,v)=>s+v,0)||1;
+  fcEl.innerHTML=Object.keys(formulesCA).length?Object.entries(formulesCA).sort((a,b)=>b[1]-a[1]).map(([f,v],i)=>{
+    const pct=Math.round(v/totalCA*100);
+    const col=colors[i%colors.length];
+    return`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:12px;font-weight:600;color:${col}">${f}</span>
+        <span style="font-size:12px;color:var(--g500)">${Number(v).toLocaleString('fr-FR')} FCFA · ${pct}%</span>
+      </div>
+      <div class="pgb"><div class="pgbf" style="width:${pct}%;background:${col}"></div></div>
+    </div>`;}).join('')
+    :'<p style="color:var(--g400);font-size:12px">Aucun historique</p>';
+
+  document.getElementById('d-stats').innerHTML=`
+    <div class="st"><div class="sv">${cl.length}</div><div class="sl">Clients</div></div>
+    <div class="st g"><div class="sv">${actifs}</div><div class="sl">Actifs</div></div>
+    <div class="st o"><div class="sv">${e30}</div><div class="sl">Expirent 30j</div></div>
+    <div class="st r"><div class="sv">${e7}</div><div class="sl">Urgents ≤7j</div></div>
+    <div class="st r"><div class="sv">${ex}</div><div class="sl">Expirées</div></div>
+    <div class="st p"><div class="sv">${ess}</div><div class="sl">Essais</div></div>
+    <div class="st g"><div class="sv">${(ca/1000).toFixed(0)}K</div><div class="sl">CA Licences</div></div>`;
+  const e30l=cl.filter(c=>c.expiration&&jr(c.expiration)>0&&jr(c.expiration)<=30).sort((a,b)=>jr(a.expiration)-jr(b.expiration));
+  const e30El=document.getElementById('d-exp30');
+  if(!e30l.length){e30El.innerHTML='<p style="color:var(--g400);font-size:12px;padding:6px 0">Aucune expiration dans 30j ✅</p>';}
+  else e30El.innerHTML=e30l.map(c=>{const j=jr(c.expiration);const col=j<=7?'var(--red)':j<=15?'var(--orange)':'var(--gold)';
+    return`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--g100)">
+      <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--navy)">${c.nom}</div>
+        <div style="font-size:11px;color:var(--g400)">${c.contact||''} ${c.tel?'· '+c.tel:''}</div>
+        <div class="pgb"><div class="pgbf" style="width:${Math.max(0,j/30*100)}%;background:${col}"></div></div></div>
+      <div style="text-align:right;flex-shrink:0"><div style="font-size:15px;font-weight:700;color:${col}">${j}j</div>
+        <div style="font-size:11px;color:var(--g400)">Exp. ${fd(c.expiration)}</div></div>
+      <button class="btn bgold bsm" onclick="renew('${c.id}')">🔑</button></div>`;}).join('');
+  const exl=cl.filter(c=>!c.expiration||jr(c.expiration)<=0);
+  const exEl=document.getElementById('d-expd');
+  if(!exl.length){exEl.innerHTML='<p style="color:var(--g400);font-size:12px;padding:6px 0">Aucun client expiré ✅</p>';}
+  else exEl.innerHTML=exl.map(c=>`<div style="display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--g100)">
+    <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--navy)">${c.nom}</div>
+      <div style="font-size:11px;color:var(--g400)">Exp. ${fd(c.expiration)||'Jamais'}</div></div>
+    <button class="btn bp2 bsm" onclick="renew('${c.id}')">🔑</button></div>`).join('');
+}
+
+// CLIENTS
+let _eid=null;
+function rClients(){
+  const q=(document.getElementById('cl-q')?.value||'').toLowerCase();
+  const ft=document.getElementById('cl-ft')?.value||'';
+  const l=db.clients.filter(c=>(!ft||c.type===ft)&&(!q||c.nom.toLowerCase().includes(q)||(c.contact||'').toLowerCase().includes(q)));
+  document.getElementById('cl-cnt').textContent=`${l.length} client(s)`;
+  const tb=document.getElementById('cl-tb');
+  if(!l.length){tb.innerHTML='<tr><td colspan="8" style="text-align:center;color:var(--g400);padding:22px">Aucun client</td></tr>';return;}
+  tb.innerHTML=l.map(c=>{const j=c.expiration?jr(c.expiration):null;const col=j===null?'var(--g400)':j<=0?'var(--red)':j<=7?'var(--red)':j<=30?'var(--orange)':'var(--green)';
+    return`<tr>
+      <td><div style="font-weight:600;color:var(--navy)">${c.nom}</div>${c.description?'<div style="font-size:11px;color:var(--g400);margin-top:2px">'+ c.description+'</div>':''}</td>
+      <td style="color:var(--g500);font-size:11px">${c.contact||'—'}</td>
+      <td style="font-size:11px;font-family:var(--mono)">${c.tel||'—'}</td>
+      <td>${c.type==='essai'?'<span class="bx bo">🎁 Essai</span>':'<span class="bx bg">💳 Payant</span>'}</td>
+      <td style="font-size:11px">${c.tranche||'—'}</td>
+      <td style="font-size:12px;font-weight:600;color:var(--purple)">${c.formule||'—'}</td>
+      <td style="font-size:11px">${fd(c.expiration)}</td>
+      <td style="font-size:13px;font-weight:700;color:${col}">${j===null?'—':j<=0?'Expirée':j+'j'}</td>
+      <td>${sbg(c.expiration)}</td>
+      <td><div style="display:flex;gap:4px">
+        <button class="btn bgold bsm" onclick="renew('${c.id}')">🔑</button>
+        <button class="btn bgh bsm" onclick="detail('${c.id}')">👁</button>
+        <button class="btn bgh bsm" onclick="editCl('${c.id}')">✏️</button>
+      </div></td></tr>`;}).join('');
+}
+function openAdd(){
+  _eid=null;document.getElementById('mcl-t').textContent='➕ Nouveau client';
+  ['mc-n','mc-desc','mc-c','mc-t','mc-e','mc-v','mc-o','mc-a'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  document.querySelectorAll('input[name="mc-tranche"]').forEach(r=>r.checked=false);
+  ['lt1','lt2','lt3','lt4'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.cssText='display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;cursor:pointer;font-size:12px';});
+  document.getElementById('mc-nbm-offre').textContent='';
+  if(document.getElementById('mc-offre-hidden'))document.getElementById('mc-offre-hidden').value='';
+  // type=payant par défaut (plus de radio mc-tp)
+  document.getElementById('mc-err').style.display='none';OM('m-cl');
+}
+function editCl(id){
+  const c=db.clients.find(x=>x.id===id);if(!c)return;
+  _eid=id;document.getElementById('mcl-t').textContent='✏️ Modifier client';
+  document.getElementById('mc-n').value=c.nom||'';
+  document.getElementById('mc-desc').value=c.description||'';document.getElementById('mc-c').value=c.contact||'';
+  document.getElementById('mc-t').value=c.tel||'';document.getElementById('mc-e').value=c.email||'';
+  document.getElementById('mc-v').value=c.ville||'';document.getElementById('mc-o').value=c.note||'';
+  document.getElementById('mc-a').value=c.activationPaye||'';
+  if(document.getElementById('mc-offre-hidden'))document.getElementById('mc-offre-hidden').value=c.formule||'';
+  // Restaurer la tranche
+  if(c.tranche){
+    const r=document.querySelector(`input[name="mc-tranche"][value="${c.tranche}"]`);
+    if(r){r.checked=true;onTrancheChange(c.tranche);}
+  }
+  // type géré par essai dans le générateur
+  document.getElementById('mc-err').style.display='none';OM('m-cl');
+}
+function updT(){ /* type de compte supprimé */ }
+function saveCl(){
+  const nom=document.getElementById('mc-n').value.trim().toUpperCase();
+  if(!nom){document.getElementById('mc-err').textContent='Nom obligatoire.';document.getElementById('mc-err').style.display='block';return;}
+  const type='payant'; // type par défaut — mode essai géré dans le générateur
+  const tranche=document.querySelector('input[name="mc-tranche"]:checked')?.value||'';
+  const formule=document.getElementById('mc-offre-hidden')?.value||'';
+  const desc=document.getElementById('mc-desc').value.trim();
+  const data={nom,type:'payant',description:desc,tranche,formule,contact:document.getElementById('mc-c').value.trim(),tel:document.getElementById('mc-t').value.trim(),
+    email:document.getElementById('mc-e').value.trim(),ville:document.getElementById('mc-v').value.trim(),
+    note:document.getElementById('mc-o').value.trim(),activationPaye:parseInt(document.getElementById('mc-a').value)||0};
+  if(_eid){const i=db.clients.findIndex(x=>x.id===_eid);if(i>=0)db.clients[i]={...db.clients[i],...data};}
+  else{data.id=uid();data.createdAt=new Date().toISOString().split('T')[0];db.clients.push(data);}
+  saveDB();
+  const clId=_eid||db.clients[db.clients.length-1]?.id;
+  const clObj=db.clients.find(x=>x.id===clId);
+  if(clObj) saveClientSheets(clObj);
+  CM('m-cl');rClients();
+}
+function detail(id){
+  const c=db.clients.find(x=>x.id===id);if(!c)return;
+  const h=db.historique.filter(x=>x.clientId===id).sort((a,b)=>b.date.localeCompare(a.date));
+  const ca=h.reduce((s,x)=>s+(Number(x.abonnement)||0)+(Number(x.activation)||0),0);
+  const j=c.expiration?jr(c.expiration):null;
+  document.getElementById('md-t').textContent=c.nom;
+  document.getElementById('md-c').innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px">
+      ${[['Contact',c.contact],['Téléphone',c.tel],['Email',c.email],['Ville',c.ville],
+        ['Sigle',c.nom||'—'],
+        ['Nom complet',c.description||'—'],
+        ['Tranche',c.tranche||'—'],
+        ['Formule',c.formule||'—'],
+        ['Dernière clé',c.lastKey?c.lastKey.substring(0,16)+'…':'—'],
+        ['Expiration',fd(c.expiration)],
+        ['Restant',j===null?'—':j<=0?'Expirée':j+' jours'],
+        ['CA généré',fm(ca)]].map(([l,v])=>`<div style="font-size:12px;color:var(--g400)">${l}<br><strong style="color:var(--navy)">${v||'—'}</strong></div>`).join('')}
+    </div>
+    <div style="font-size:12px;font-weight:700;color:var(--navy);margin-bottom:8px">📋 Historique</div>
+    ${h.length?`<div class="tw"><table style="font-size:11px"><thead><tr><th>Date</th><th>Expiration</th><th>Durée</th><th>Abonnement</th><th>Activation</th><th>Total</th></tr></thead>
+    <tbody>${h.map(x=>`<tr><td>${fd(x.date)}</td><td>${fd(x.expiration)}</td><td>${x.duree||'—'}j</td>
+      <td>${fm(x.abonnement)}</td><td>${x.activation?fm(x.activation):'—'}</td>
+      <td style="font-weight:700;color:var(--navy)">${fm((Number(x.abonnement)||0)+(Number(x.activation)||0))}</td></tr>`).join('')}
+    </tbody></table></div>`:'<p style="color:var(--g400);font-size:12px">Aucun historique</p>'}
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <button class="btn bgold" onclick="renew('${c.id}');CM('m-dt')" style="flex:1;justify-content:center">🔑 Renouveler</button>
+      <button class="btn bgh" onclick="CM('m-dt')" style="flex:1;justify-content:center">Fermer</button>
+    </div>`;
+  OM('m-dt');
+}
+function renew(id){nav('generateur');setTimeout(()=>{document.getElementById('g-cl').value=id;onPickCl();},150);}
+
+// GENERATEUR
+let _gen=null;
+function rGen(){
+  const sel=document.getElementById('g-cl');
+  sel.innerHTML='<option value="">— Saisie manuelle / Nouveau —</option>'
+    +db.clients.map(c=>`<option value="${c.id}">${c.nom}${c.expiration?' (exp. '+fd(c.expiration)+')':''}</option>`).join('');
+  // Toujours recharger les tarifs frais
+  tarifs=lsg(TK)||dTar();
+  if(!tarifs.offres||!tarifs.offres.length) tarifs.offres=dTar().offres;
+
+  // Remplir le select des formules depuis tarifs.offres (tranches)
+  const osel=document.getElementById('g-offre');
+  osel.disabled=false;
+  osel.innerHTML='<option value="">— Sélectionner une formule —</option>'
+    +(tarifs.offres||[]).sort((a,b)=>a.min-b.min).map((o,i)=>{
+      const tLabel=o.max?o.min+'–'+o.max+' membres':o.min+'+ membres';
+      return `<option value="${i}">${o.nom} · ${tLabel} · ${Number(o.prix).toLocaleString('fr-FR')} FCFA/mois</option>`;
+    }).join('');
+  const rsel=document.getElementById('g-rem');
+  rsel.innerHTML='<option value="">Aucune remise</option>'
+    +(tarifs.remises||[]).map((r,i)=>`<option value="${i}">${r.label} (${r.type==='pct'?'-'+r.valeur+'%':'-'+Number(r.valeur).toLocaleString('fr-FR')+' FCFA'})</option>`).join('');
+  document.getElementById('g-res').style.display='none';
+  // Réinitialiser le champ activation
+  const actEl=document.getElementById('g-act');
+  const actSugEl=document.getElementById('g-act-suggest');
+  if(actEl){ actEl.value=''; actEl.readOnly=false; actEl.style.background=''; }
+  if(actSugEl){
+    if(tarifs.activation){
+      actSugEl.textContent=`⭐ Tarif activation : ${Number(tarifs.activation).toLocaleString('fr-FR')} FCFA — cliquer pour appliquer`;
+      actSugEl.style.color='var(--gold)';actSugEl.style.cursor='pointer';
+      actSugEl.onclick=()=>{actEl.value=tarifs.activation;actSugEl.textContent='';calcActTotal();};
+    } else { actSugEl.textContent=''; }
+  }
+  const essaiCb=document.getElementById('g-essai');
+  if(essaiCb){essaiCb.checked=false;document.getElementById('g-essai-block').style.display='none';}
+}
+
+function onPickOffre(){
+  if(!tarifs.offres?.length){ tarifs=lsg(TK)||dTar(); }
+  const i=document.getElementById('g-offre').value;
+  const el=document.getElementById('g-offre-info');
+  if(i===''){el.textContent='';document.getElementById('g-calc-recap').style.display='none';return;}
+  const o=tarifs.offres[parseInt(i)];
+  if(!o) return;
+  const tLabel=o.max?o.min+' à '+o.max+' membres':o.min+'+ membres';
+  el.textContent=`📦 ${o.nom} · ${tLabel} · ${Number(o.prix).toLocaleString('fr-FR')} FCFA/mois${o.desc?' — '+o.desc:''}`;
+  calcMontant();
+}
+
+function setMois(n){
+  document.getElementById('g-nbmois').value=n;
+  calcMontant();
+}
+
+function calcMontant(){
+  const oi=document.getElementById('g-offre').value;
+  const nb=parseInt(document.getElementById('g-nbmois').value)||0;
+  if(oi===''||!nb){document.getElementById('g-calc-recap').style.display='none';return;}
+  const o=tarifs.offres?.[parseInt(oi)];
+  if(!o) return;
+  const prixBase=o.prix*nb;
+  // Remise
+  const ri=document.getElementById('g-rem').value;
+  let rem=0,reml='';
+  if(ri!==''){const r=tarifs.remises?.[parseInt(ri)];if(r){rem=r.type==='pct'?Math.round(prixBase*r.valeur/100):r.valeur;reml=r.label;}}
+  const net=Math.max(0,prixBase-rem);
+  // Activation
+  const act=parseInt(document.getElementById('g-act').value)||0;
+  const total=net+act;
+  // Champ montant
+  document.getElementById('g-mnt').value=net;
+  // Date expiration
+  const id=document.getElementById('g-cl').value;
+  const cl=db.clients.find(x=>x.id===id);
+  let start=new Date();
+  if(cl?.expiration&&jr(cl.expiration)>0) start=new Date(cl.expiration);
+  const end=new Date(start);end.setMonth(end.getMonth()+nb);
+  document.getElementById('g-exp').value=end.toISOString().split('T')[0];
+  const eh=document.getElementById('g-eh');
+  eh.textContent=`${nb} mois → expire le ${end.toLocaleDateString('fr-FR')}`;eh.style.color='var(--blue)';
+  // Récapitulatif
+  document.getElementById('g-calc-recap').style.display='block';
+  document.getElementById('rc-offre').textContent=o.nom;
+  document.getElementById('rc-unit').textContent=`${Number(o.prix).toLocaleString('fr-FR')} FCFA × ${nb} mois = ${Number(prixBase).toLocaleString('fr-FR')} FCFA`;
+  document.getElementById('rc-rem').textContent=rem?`-${Number(rem).toLocaleString('fr-FR')} FCFA (${reml})`:'Aucune';
+  // Ligne activation
+  const actRow=document.getElementById('rc-act-row');
+  const actEl=document.getElementById('rc-act');
+  if(act&&actRow&&actEl){
+    actRow.style.display='flex';
+    actEl.textContent=`+${Number(act).toLocaleString('fr-FR')} FCFA`;
+  } else if(actRow){
+    actRow.style.display='none';
+  }
+  document.getElementById('rc-total').textContent=`${Number(total).toLocaleString('fr-FR')} FCFA`;
+}
+
+// Recalcul quand on change le montant activation
+function calcActTotal(){
+  const oi=document.getElementById('g-offre').value;
+  const nb=parseInt(document.getElementById('g-nbmois').value)||0;
+  const act=parseInt(document.getElementById('g-act').value)||0;
+  // Pré-remplir avec le tarif d'activation par défaut si vide
+  const sugEl=document.getElementById('g-act-suggest');
+  if(sugEl&&tarifs.activation&&act===0){
+    sugEl.textContent=`⭐ Tarif activation : ${Number(tarifs.activation).toLocaleString('fr-FR')} FCFA — cliquer pour appliquer`;
+    sugEl.onclick=()=>{document.getElementById('g-act').value=tarifs.activation;calcActTotal();};
+    sugEl.style.cursor='pointer';
+  } else if(sugEl){ sugEl.textContent=''; }
+  if(oi!==''&&nb) calcMontant();
+  // Sinon mettre juste à jour le total affiché
+  const net=parseInt(document.getElementById('g-mnt').value)||0;
+  const total=net+act;
+  const rcTotal=document.getElementById('rc-total');
+  if(rcTotal&&document.getElementById('g-calc-recap').style.display!=='none'){
+    rcTotal.textContent=`${Number(total).toLocaleString('fr-FR')} FCFA`;
+    const actRow=document.getElementById('rc-act-row');
+    const actEl=document.getElementById('rc-act');
+    if(actRow&&actEl){actRow.style.display=act?'flex':'none';if(act)actEl.textContent=`+${Number(act).toLocaleString('fr-FR')} FCFA`;}
+  }
+}
+
+function toggleEssai(){
+  const isEssai=document.getElementById('g-essai').checked;
+  document.getElementById('g-essai-block').style.display=isEssai?'block':'none';
+  if(isEssai){
+    document.getElementById('g-mnt').value=0;
+    document.getElementById('g-act').value=0;
+    document.getElementById('g-calc-recap').style.display='none';
+    document.getElementById('g-offre').disabled=true;
+    document.getElementById('g-rem').disabled=true;
+  } else {
+    document.getElementById('g-offre').disabled=false;
+    document.getElementById('g-rem').disabled=false;
+    calcMontant();
+  }
+}
+
+function updateRecap(){
+  // Recalcul quand on modifie le montant manuellement
+  const isEssai=document.getElementById('g-essai')?.checked;
+  const nbMois=parseInt(document.getElementById('g-nbmois').value)||1;
+  const mnt=isEssai?0:(parseInt(document.getElementById('g-mnt').value)||0);
+  const nb=parseInt(document.getElementById('g-nbmois').value)||1;
+  const oi=document.getElementById('g-offre').value;
+  if(oi==='') return;
+  const o=tarifs.offres[parseInt(oi)];
+  if(!o) return;
+  const prixBase=o.prix*nb;
+  const rem=Math.max(0,prixBase-mnt);
+  document.getElementById('rc-rem').textContent=rem?'-'+Number(rem).toLocaleString('fr-FR')+' FCFA (manuel)':'Aucune';
+  document.getElementById('rc-total').textContent=Number(mnt).toLocaleString('fr-FR')+' FCFA';
+}
+
+// suggestOffre supprimée — la formule est auto-sélectionnée depuis le client
+
+function onTrancheChange(tranche){
+  // Mettre en évidence la case cochée
+  ['lt1','lt2','lt3','lt4'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.style.cssText='display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;cursor:pointer;font-size:12px';
+  });
+  const sel=document.querySelector(`input[name="mc-tranche"][value="${tranche}"]`);
+  if(sel&&sel.closest('label')) sel.closest('label').style.cssText='display:flex;align-items:center;gap:8px;padding:9px 12px;border:2px solid var(--purple);border-radius:8px;cursor:pointer;font-size:12px;background:#EDE9FE;font-weight:700';
+  // Trouver la formule correspondante
+  const [mn,mx]=tranche==='1001+'?[1001,0]:tranche.split('-').map(Number);
+  const el=document.getElementById('mc-nbm-offre');
+  const oEl=document.getElementById('mc-offre-hidden');
+  if(!tarifs.offres?.length){el.textContent='';return;}
+  const o=tarifs.offres.find(x=>mn>=x.min&&(x.max===0||mn<=x.max));
+  if(o){
+    el.textContent='📦 Formule recommandée : '+o.nom+' — '+Number(o.prix).toLocaleString('fr-FR')+' FCFA/mois';
+    if(oEl) oEl.value=o.nom;
+  } else {
+    el.textContent='⚠️ Aucune formule pour cette tranche';
+    if(oEl) oEl.value='';
+  }
+}
+
+function suggestOffreModal(nb){
+  nb=parseInt(nb)||0;
+  const el=document.getElementById('mc-nbm-offre');
+  const oEl=document.getElementById('mc-offre-hidden');
+  if(!nb||!tarifs.offres?.length){if(el)el.textContent='';return;}
+  const o=tarifs.offres.find(x=>nb>=x.min&&(x.max===0||nb<=x.max));
+  if(o){if(el)el.textContent='📦 '+o.nom+' — '+Number(o.prix).toLocaleString('fr-FR')+' FCFA/mois';if(oEl)oEl.value=o.nom;}
+  else{if(el)el.textContent='⚠️ Aucune formule pour ce nombre';if(oEl)oEl.value='';}
+}
+
+function onPickCl(){
+  const id=document.getElementById('g-cl').value;
+  if(!id){
+    document.getElementById('g-nom').value='';
+    document.getElementById('g-eh').textContent='';
+    document.getElementById('g-actblk').style.display='none';
+    document.getElementById('g-offre-info').textContent='';
+    document.getElementById('g-calc-recap').style.display='none';
+    return;
+  }
+  const cl=db.clients.find(x=>x.id===id);
+  if(!cl) return;
+
+  document.getElementById('g-nom').value=cl.nom;
+  document.getElementById('g-actblk').style.display='block';
+
+  // ── Vérifier si l'activation a déjà été payée
+  const osel=document.getElementById('g-offre');
+  const offres=tarifs.offres||[];
+  let targetIdx=-1;
+
+  if(cl.formule){
+    // 1. Par nom de formule enregistrée
+    targetIdx=offres.findIndex(o=>o.nom===cl.formule);
+  }
+  if(targetIdx<0&&cl.tranche){
+    // 2. Par tranche (ex: "10-200" ou "201-550")
+    const mn=parseInt((cl.tranche.split('-')[0]||cl.tranche).replace('+',''))||0;
+    targetIdx=offres.findIndex(o=>mn>=o.min&&(o.max===0||mn<=o.max));
+  }
+  if(targetIdx<0&&cl.nbMembres){
+    // 3. Par nombre de membres
+    const nb=parseInt(cl.nbMembres)||0;
+    targetIdx=offres.findIndex(o=>nb>=o.min&&(o.max===0||nb<=o.max));
+  }
+
+  if(targetIdx>=0){
+    osel.value=String(targetIdx);
+    onPickOffre();
+    // Info tranche client
+    const o=offres[targetIdx];
+    const tLabel=o.max?o.min+'–'+o.max+' membres':o.min+'+ membres';
+    document.getElementById('g-offre-info').textContent=
+      `📦 ${o.nom} · ${tLabel} · ${Number(o.prix).toLocaleString('fr-FR')} FCFA/mois`
+      +(cl.tranche?` — tranche client : ${cl.tranche}`:'');
+  } else {
+    osel.value='';
+    document.getElementById('g-offre-info').textContent=
+      cl.tranche||cl.nbMembres?'⚠️ Aucune formule ne correspond à ce client — sélectionnez manuellement':'';
+    document.getElementById('g-calc-recap').style.display='none';
+  }
+
+  // ── Frais d'activation — détecter si déjà payé pour ce client
+  const actElP=document.getElementById('g-act');
+  const actSugElP=document.getElementById('g-act-suggest');
+  if(actElP&&actSugElP){
+    const dejaPaye=db.historique.some(h=>h.clientId===cl.id&&Number(h.activation)>0);
+    if(dejaPaye){
+      actElP.value=0;actElP.readOnly=true;actElP.style.background='var(--g100)';
+      actSugElP.textContent='✅ Frais d\'activation déjà payé — mis à 0 automatiquement';
+      actSugElP.style.color='var(--green)';actSugElP.style.cursor='default';actSugElP.onclick=null;
+    } else {
+      actElP.value='';actElP.readOnly=false;actElP.style.background='';
+      if(tarifs.activation){
+        actSugElP.textContent=`⭐ Tarif activation : ${Number(tarifs.activation).toLocaleString('fr-FR')} FCFA — cliquer pour appliquer`;
+        actSugElP.style.color='var(--gold)';actSugElP.style.cursor='pointer';
+        actSugElP.onclick=()=>{actElP.value=tarifs.activation;actSugElP.textContent='';calcActTotal();};
+      } else { actSugElP.textContent=''; }
+    }
+  }
+
+  // ── Info expiration
+  const h=document.getElementById('g-eh');
+  if(cl.expiration&&jr(cl.expiration)>0){
+    h.textContent=`Licence active jusqu'au ${fd(cl.expiration)} — nouvelle date part de cette échéance`;
+    h.style.color='var(--green)';
+  } else {
+    h.textContent=cl.expiration?`Licence expirée le ${fd(cl.expiration)}`:'Aucune licence précédente';
+    h.style.color='var(--orange)';
+  }
+}
+function setDur_DEPRECATED(j){
+  const id=document.getElementById('g-cl').value;
+  const c=db.clients.find(x=>x.id===id);
+  let s=new Date();if(c?.expiration&&jr(c.expiration)>0)s=new Date(c.expiration);
+  s.setDate(s.getDate()+j);
+  document.getElementById('g-exp').value=s.toISOString().split('T')[0];
+  const t=tarifs.abonnements?.find(x=>x.duree===j);
+  if(t)document.getElementById('g-mnt').value=t.prix;
+  const h=document.getElementById('g-eh');
+  h.textContent=`${j} jours → expire le ${s.toLocaleDateString('fr-FR')}`;h.style.color='var(--blue)';
+}
+async function genKey(){
+  const nom=document.getElementById('g-nom').value.trim().toUpperCase();
+  const exp=document.getElementById('g-exp').value;
+  if(!nom||!exp){alert('Remplissez le nom et la date d\'expiration.');return;}
+  const hash=await sha256(nom+'|'+exp+'|'+MKEY);
+  const key=hash.substring(0,32).toUpperCase();
+  const isEssai=document.getElementById('g-essai')?.checked;
+  const nbMois=parseInt(document.getElementById('g-nbmois').value)||1;
+  const mnt=isEssai?0:(parseInt(document.getElementById('g-mnt').value)||0);
+  const ri=document.getElementById('g-rem').value;
+  const act=parseInt(document.getElementById('g-act').value)||0;
+  let rem=0,reml='';
+  if(ri!==''){const r=tarifs.remises[parseInt(ri)];if(r){rem=r.type==='pct'?Math.round(mnt*r.valeur/100):r.valeur;reml=r.label;}}
+  const net=Math.max(0,mnt-rem);const tot=net+act;
+  const oi2=document.getElementById('g-offre').value;
+  const offreName=oi2!==''&&tarifs.offres[parseInt(oi2)]?tarifs.offres[parseInt(oi2)].nom:'';
+  _gen={nom,exp,key,montant:mnt,remise:rem,remiseLabel:reml,activation:act,net,total:tot,nbMois:nbMois,offre:offreName,note:document.getElementById('g-note').value,clientId:document.getElementById('g-cl').value};
+  document.getElementById('r-nom').textContent=nom;
+  document.getElementById('r-exp').textContent=fd(exp)+` (${Math.round((new Date(exp)-new Date())/864e5)} jours)`;
+  document.getElementById('r-tot').innerHTML=isEssai?'<span style="color:var(--gold);font-weight:700">🎁 OFFERT — Période d\'essai gratuite</span>':rem?`${fm(mnt)} <span style="color:var(--red)">− ${fm(rem)} (${reml})</span> = <span style="color:var(--green)">${fm(net)}</span>${act?` + Activation ${fm(act)} = <strong>${fm(tot)}</strong>`:''}`:fm(tot)||'Offert';
+  document.getElementById('r-key').textContent=key;
+  document.getElementById('r-wa').innerHTML=`<strong>Message WhatsApp :</strong><br>🔑 Renouvellement KynsGestAsso ✅<br>Mutuelle : <strong>${nom}</strong><br>Expiration : <strong>${fd(exp)}</strong><br>Clé : <code>${key}</code><br>➡ App → Tableau de bord → Activer / Renouveler`;
+  document.getElementById('g-res').style.display='block';
+}
+function copyKey(){navigator.clipboard.writeText(document.getElementById('r-key').textContent).then(()=>{const e=document.getElementById('r-cp');e.textContent='✅ Clé copiée !';setTimeout(()=>e.textContent='',2000);});}
+function copyWA(){if(!_gen)return;const m=`🔑 Renouvellement KynsGestAsso ✅\nMutuelle : ${_gen.nom}\nExpiration : ${fd(_gen.exp)}\nClé : ${_gen.key}\n➡ App → Tableau de bord → Activer / Renouveler\n\nMerci de votre confiance ! KynsDev`;navigator.clipboard.writeText(m).then(()=>alert('✅ Message copié !'));}
+function saveGen(){
+  if(!_gen)return;
+  const today=new Date().toISOString().split('T')[0];
+  const duree=Math.round((new Date(_gen.exp)-new Date())/864e5);
+  const h={id:uid(),clientId:_gen.clientId||null,nom:_gen.nom,cle:_gen.key,date:today,expiration:_gen.exp,duree,nbMois:_gen.nbMois,offre:_gen.offre,abonnement:_gen.net,activation:_gen.activation,remise:_gen.remise,remiseLabel:_gen.remiseLabel,note:_gen.note};
+  db.historique.push(h);
+  if(_gen.clientId){const i=db.clients.findIndex(x=>x.id===_gen.clientId);if(i>=0){db.clients[i].expiration=_gen.exp;db.clients[i].lastKey=_gen.key;}}
+  else{const nc={id:uid(),nom:_gen.nom,type:'payant',expiration:_gen.exp,lastKey:_gen.key,createdAt:today,contact:'',tel:'',email:'',ville:'',note:_gen.note||''};db.clients.push(nc);h.clientId=nc.id;}
+  saveDB();
+  saveHistoSheets(h);
+  const newCl=db.clients.find(x=>x.id===h.clientId);
+  if(newCl) saveClientSheets(newCl);
+  alert('✅ Sauvegardé !');nav('clients');
+}
+
+// TARIFS
+// ─ Packs SMS dans Tarifs
+function renderSmsPackRows(){
+  const packs=tarifs.smsPacks||SMS_PACKS;
+  const el=document.getElementById('sms-pack-rows');
+  if(!el) return;
+  el.innerHTML=packs.map((p,i)=>{
+    const ben=(Number(p.prixVente)||0)-(Number(p.prixAchat)||0);
+    return `<div class="sms-pr" style="display:grid;grid-template-columns:1fr 70px 130px 130px 110px 36px;gap:8px;margin-bottom:8px;align-items:center">
+      <input type="text"   class="sp-lbl inp" value="${p.label||''}"      placeholder="Pack 60 SMS"/>
+      <input type="number" class="sp-sms inp" value="${p.sms||''}"        placeholder="60" min="1"/>
+      <input type="number" class="sp-pv  inp" value="${p.prixVente||''}"  step="50" oninput="updateSmsBen(this)"/>
+      <input type="number" class="sp-pa  inp" value="${p.prixAchat||''}"  step="50" oninput="updateSmsBen(this)"/>
+      <div class="sp-ben" style="font-size:13px;font-weight:700;color:${ben>0?'var(--green)':'var(--red)'}">
+        ${ben>=0?'+':''}${ben.toLocaleString('fr-FR')} FCFA
+      </div>
+      <button onclick="this.closest('.sms-pr').remove()" style="width:36px;height:36px;background:none;border:1.5px solid var(--g200);border-radius:7px;cursor:pointer;color:var(--red);font-size:16px">✕</button>
+    </div>`;
+  }).join('');
+}
+
+function updateSmsBen(input){
+  const row=input.closest('.sms-pr'); if(!row) return;
+  const pv=parseFloat(row.querySelector('.sp-pv').value)||0;
+  const pa=parseFloat(row.querySelector('.sp-pa').value)||0;
+  const ben=pv-pa;
+  const benEl=row.querySelector('.sp-ben');
+  if(benEl){benEl.textContent=(ben>=0?'+':'')+ben.toLocaleString('fr-FR')+' FCFA';benEl.style.color=ben>0?'var(--green)':'var(--red)';}
+}
+
+function addSmsPackRow(){
+  const el=document.getElementById('sms-pack-rows');
+  el.insertAdjacentHTML('beforeend',`
+    <div class="sms-pr" style="display:grid;grid-template-columns:1fr 70px 130px 130px 110px 36px;gap:8px;margin-bottom:8px;align-items:center">
+      <input type="text"   class="sp-lbl inp" placeholder="Pack 60 SMS"/>
+      <input type="number" class="sp-sms inp" placeholder="60" min="1"/>
+      <input type="number" class="sp-pv  inp" step="50" placeholder="1300" oninput="updateSmsBen(this)"/>
+      <input type="number" class="sp-pa  inp" step="50" placeholder="1100" oninput="updateSmsBen(this)"/>
+      <div class="sp-ben" style="font-size:13px;font-weight:700;color:var(--g400)">0 FCFA</div>
+      <button onclick="this.closest('.sms-pr').remove()" style="width:36px;height:36px;background:none;border:1.5px solid var(--g200);border-radius:7px;cursor:pointer;color:var(--red);font-size:16px">✕</button>
+    </div>`);
+}
+
+function rTarifs(){
+  tarifs=lsg(TK)||dTar();
+  document.getElementById('t-act').value=tarifs.activation||'';
+  document.getElementById('t-actd').value=tarifs.activationDesc||'';
+  const rows=document.getElementById('t-rows');
+  rows.innerHTML=(tarifs.abonnements||[]).map(t=>`
+    <div class="t-row" style="display:grid;grid-template-columns:90px 1fr 140px 36px;gap:8px;margin-bottom:8px;align-items:center">
+      <input type="number" class="t-d inp" value="${t.duree}" placeholder="30" min="1"/>
+      <input type="text"   class="t-l inp" value="${t.label}" placeholder="1 mois"/>
+      <input type="number" class="t-p inp" value="${t.prix}"  step="100" placeholder="3600"/>
+      <button onclick="this.closest('.t-row').remove()" style="width:36px;height:36px;background:none;border:1.5px solid var(--g200);border-radius:7px;cursor:pointer;color:var(--red);font-size:16px">✕</button>
+    </div>`).join('');
+  // Offres
+  const orows=document.getElementById('o-rows');
+  orows.innerHTML=(tarifs.offres||[]).map(o=>`
+    <div class="o-row" style="display:grid;grid-template-columns:1fr 80px 80px 140px 1fr 36px;gap:8px;margin-bottom:8px;align-items:center">
+      <input type="text"   class="o-n inp" value="${o.nom}"  placeholder="ESSENTIEL" style="font-weight:700"/>
+      <input type="number" class="o-mi inp" value="${o.min}" placeholder="10" min="0"/>
+      <input type="number" class="o-ma inp" value="${o.max}" placeholder="200" min="0"/>
+      <input type="number" class="o-p inp"  value="${o.prix}" step="100" placeholder="2500"/>
+      <input type="text"   class="o-d inp"  value="${o.desc||''}" placeholder="Description…"/>
+      <button onclick="this.closest('.o-row').remove()" style="width:36px;height:36px;background:none;border:1.5px solid var(--g200);border-radius:7px;cursor:pointer;color:var(--red);font-size:16px">✕</button>
+    </div>`).join('');
+  const rrows=document.getElementById('r-rows');
+  rrows.innerHTML=(tarifs.remises||[]).map(r=>`
+    <div class="r-row" style="display:grid;grid-template-columns:1fr 95px 110px 1fr 36px;gap:8px;margin-bottom:8px;align-items:center">
+      <input type="text"   class="r-l inp" value="${r.label}"  placeholder="Remise fidélité"/>
+      <select class="r-t inp"><option value="pct" ${r.type==='pct'?'selected':''}>% remise</option><option value="fixe" ${r.type==='fixe'?'selected':''}>FCFA fixe</option></select>
+      <input type="number" class="r-v inp" value="${r.valeur}" placeholder="10" step="1"/>
+      <input type="text"   class="r-c inp" value="${r.condition||''}" placeholder="Condition…"/>
+      <button onclick="this.closest('.r-row').remove()" style="width:36px;height:36px;background:none;border:1.5px solid var(--g200);border-radius:7px;cursor:pointer;color:var(--red);font-size:16px">✕</button>
+    </div>`).join('');
+  renderSmsPackRows();
+  rAp();
+}
+function addORow(){document.getElementById('o-rows').insertAdjacentHTML('beforeend',`
+  <div class="o-row" style="display:grid;grid-template-columns:1fr 80px 80px 140px 1fr 36px;gap:8px;margin-bottom:8px;align-items:center">
+    <input type="text"   class="o-n inp"  placeholder="ESSENTIEL" style="font-weight:700"/>
+    <input type="number" class="o-mi inp" placeholder="10" min="0"/>
+    <input type="number" class="o-ma inp" placeholder="200" min="0"/>
+    <input type="number" class="o-p inp"  step="100" placeholder="2500"/>
+    <input type="text"   class="o-d inp"  placeholder="Description…"/>
+    <button onclick="this.closest('.o-row').remove()" style="width:36px;height:36px;background:none;border:1.5px solid var(--g200);border-radius:7px;cursor:pointer;color:var(--red);font-size:16px">✕</button>
+  </div>`);}
+
+function addTRow(){document.getElementById('t-rows').insertAdjacentHTML('beforeend',`
+  <div class="t-row" style="display:grid;grid-template-columns:90px 1fr 140px 36px;gap:8px;margin-bottom:8px;align-items:center">
+    <input type="number" class="t-d inp" placeholder="30" min="1"/>
+    <input type="text"   class="t-l inp" placeholder="1 mois"/>
+    <input type="number" class="t-p inp" step="100" placeholder="3600"/>
+    <button onclick="this.closest('.t-row').remove()" style="width:36px;height:36px;background:none;border:1.5px solid var(--g200);border-radius:7px;cursor:pointer;color:var(--red);font-size:16px">✕</button>
+  </div>`);}
+function addRRow(){document.getElementById('r-rows').insertAdjacentHTML('beforeend',`
+  <div class="r-row" style="display:grid;grid-template-columns:1fr 95px 110px 1fr 36px;gap:8px;margin-bottom:8px;align-items:center">
+    <input type="text"   class="r-l inp" placeholder="Nom remise"/>
+    <select class="r-t inp"><option value="pct">% remise</option><option value="fixe">FCFA fixe</option></select>
+    <input type="number" class="r-v inp" placeholder="10" step="1"/>
+    <input type="text"   class="r-c inp" placeholder="Condition…"/>
+    <button onclick="this.closest('.r-row').remove()" style="width:36px;height:36px;background:none;border:1.5px solid var(--g200);border-radius:7px;cursor:pointer;color:var(--red);font-size:16px">✕</button>
+  </div>`);}
+function saveTarifs(){
+  tarifs.activation=parseInt(document.getElementById('t-act').value)||0;
+  tarifs.activationDesc=document.getElementById('t-actd').value.trim();
+  tarifs.offres=[];
+  document.querySelectorAll('.o-row').forEach(row=>{
+    const n=row.querySelector('.o-n').value.trim().toUpperCase();
+    const mi=parseInt(row.querySelector('.o-mi').value)||0;
+    const ma=parseInt(row.querySelector('.o-ma').value)||0;
+    const p=parseInt(row.querySelector('.o-p').value)||0;
+    const d=row.querySelector('.o-d').value.trim();
+    if(n&&p)tarifs.offres.push({nom:n,min:mi,max:ma,prix:p,desc:d});
+  });
+  // Sauvegarder les packs SMS
+  const newPacks=[];
+  document.querySelectorAll('.sms-pr').forEach(row=>{
+    const lbl=row.querySelector('.sp-lbl').value.trim();
+    const sms=parseInt(row.querySelector('.sp-sms').value)||0;
+    const pv =parseInt(row.querySelector('.sp-pv').value)||0;
+    const pa =parseInt(row.querySelector('.sp-pa').value)||0;
+    const id ='p'+(newPacks.length+1);
+    if(lbl&&sms&&pv) newPacks.push({id,label:lbl,sms,prixVente:pv,prixAchat:pa,benefice:pv-pa,color:'var(--blue)'});
+  });
+  if(newPacks.length) tarifs.smsPacks=newPacks;
+  tarifs.abonnements=[];
+  document.querySelectorAll('.t-row').forEach(row=>{
+    const d=parseInt(row.querySelector('.t-d').value)||0;
+    const l=row.querySelector('.t-l').value.trim();
+    const p=parseInt(row.querySelector('.t-p').value)||0;
+    if(d&&p)tarifs.abonnements.push({duree:d,label:l||d+'j',prix:p});
+  });
+  tarifs.remises=[];
+  document.querySelectorAll('.r-row').forEach(row=>{
+    const l=row.querySelector('.r-l').value.trim();
+    const t=row.querySelector('.r-t').value;
+    const v=parseFloat(row.querySelector('.r-v').value)||0;
+    const c=row.querySelector('.r-c').value.trim();
+    if(l&&v)tarifs.remises.push({label:l,type:t,valeur:v,condition:c});
+  });
+  saveTD();saveTarifsSheets();rAp();alert('✅ Tarifs enregistrés !');
+}
+function rAp(){
+  const el=document.getElementById('t-ap');if(!el)return;
+  let h='';
+  if(tarifs.activation)h+=`<div style="border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:6px;margin-bottom:8px"><span style="color:var(--gold)">⭐ Activation</span> — ${Number(tarifs.activation).toLocaleString('fr-FR')} FCFA <span style="opacity:.5;font-size:11px">(unique)</span></div>`;
+  if((tarifs.offres||[]).length){
+    h+=`<div style="border-bottom:1px solid rgba(255,255,255,.1);padding-bottom:8px;margin-bottom:8px;font-size:12px;font-weight:700;color:var(--gold)">📦 Offres par tranche</div>`;
+    h+=(tarifs.offres||[]).map(o=>`<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.05)">
+      <div><span style="font-weight:700">${o.nom}</span> <span style="opacity:.6;font-size:11px">${o.min}${o.max?' – '+o.max:'+'}  membres</span></div>
+      <span style="color:var(--gold);font-weight:700">${Number(o.prix).toLocaleString('fr-FR')} FCFA/mois</span></div>`).join('');
+    h+=`<div style="border-bottom:1px solid rgba(255,255,255,.1);margin-top:8px;margin-bottom:8px"></div>`;
+  }
+  h+=(tarifs.abonnements||[]).sort((a,b)=>a.duree-b.duree).map(t=>`<div style="display:flex;justify-content:space-between;padding:2px 0"><span>${t.label}</span><span style="color:var(--gold);font-weight:700">${Number(t.prix).toLocaleString('fr-FR')} FCFA</span></div>`).join('');
+  if((tarifs.remises||[]).length)h+=`<div style="border-top:1px solid rgba(255,255,255,.1);margin-top:8px;padding-top:6px;font-size:11px;opacity:.8">${tarifs.remises.map(r=>`<div>🎁 ${r.label} : ${r.type==='pct'?'-'+r.valeur+'%':'-'+Number(r.valeur).toLocaleString('fr-FR')+' FCFA'}${r.condition?' — '+r.condition:''}</div>`).join('')}</div>`;
+  el.innerHTML=h||'<div style="opacity:.5">Aucun tarif configuré</div>';
+}
+
+// RAPPORTS
+function initRpSel(){
+  const years=[...new Set([
+    ...(db.historique||[]).map(h=>h.date?.substring(0,4)),
+    ...(db.smsVentes||[]).map(v=>v.date?.substring(0,4)),
+    String(new Date().getFullYear())
+  ].filter(Boolean))].sort().reverse();
+  const sel=document.getElementById('rp-annee');
+  if(!sel) return;
+  const cur=sel.value||years[0];
+  sel.innerHTML=years.map(y=>`<option value="${y}" ${y===cur?'selected':''}>${y}</option>`).join('');
+  const per=document.getElementById('rp-per').value;
+  const mb=document.getElementById('rp-mois-block');
+  const moisSel=document.getElementById('rp-mois');
+  const trimSel=document.getElementById('rp-trim');
+  const lbl=document.getElementById('rp-mois-label');
+  if(mb){
+    if(per==='annee'){
+      mb.style.display='none';
+    } else if(per==='trimestre'){
+      mb.style.display='block';
+      if(moisSel) moisSel.style.display='none';
+      if(trimSel) trimSel.style.display='block';
+      if(lbl) lbl.textContent='Trimestre';
+    } else {
+      mb.style.display='block';
+      if(moisSel) moisSel.style.display='block';
+      if(trimSel) trimSel.style.display='none';
+      if(lbl) lbl.textContent='Mois';
+    }
+  }
+}
+function rRap(){
+  initRpSel();
+  const per    =document.getElementById('rp-per').value;
+  const annee  =document.getElementById('rp-annee')?.value||String(new Date().getFullYear());
+  const moisSel=per==='mois'?(document.getElementById('rp-mois')?.value||''):'';
+  const trimSel=per==='trimestre'?(document.getElementById('rp-trim')?.value||''):'';
+  const TRIM_MOIS={T1:['01','02','03'],T2:['04','05','06'],T3:['07','08','09'],T4:['10','11','12']};
+  const MOIS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const MOIS_COURT=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  function matchDate(d){
+    if(!d) return false;
+    if(d.substring(0,4)!==annee) return false;
+    if(moisSel&&d.substring(5,7)!==moisSel) return false;
+    if(trimSel&&!TRIM_MOIS[trimSel]?.includes(d.substring(5,7))) return false;
+    return true;
+  }
+  function getKey(d){
+    const mo=d.substring(5,7);
+    if(per==='mois')      return annee+'-'+mo;
+    if(per==='trimestre'){const q=Math.ceil(parseInt(mo)/3);return annee+'-T'+q;}
+    return annee;
+  }
+  function lblKey(k){
+    if(per==='mois')      return MOIS_COURT[parseInt(k.split('-')[1])-1]+' '+annee;
+    if(per==='trimestre') return k.split('-')[1]+' '+annee;
+    return k;
+  }
+  const grp={};
+  (db.historique||[]).filter(h=>matchDate(h.date)).forEach(h=>{
+    const k=getKey(h.date);
+    if(!grp[k])grp[k]={abo:0,act:0,rem:0,nb:0};
+    grp[k].abo+=Number(h.abonnement)||0;
+    grp[k].act+=Number(h.activation)||0;
+    grp[k].rem+=Number(h.remise)||0;
+    grp[k].nb++;
+  });
+  // SMS traité dans le rapport SMS séparé
+  const keys=Object.keys(grp).sort();
+  const tAbo =Object.values(grp).reduce((s,g)=>s+g.abo,0);
+  const tAct =Object.values(grp).reduce((s,g)=>s+g.act,0);
+  const tRem =Object.values(grp).reduce((s,g)=>s+g.rem,0);
+  const tNb  =Object.values(grp).reduce((s,g)=>s+g.nb,0);
+  const tCA=tAbo+tAct;
+  document.getElementById('rp-st').innerHTML=`
+    <div class="st g"><div class="sv">${tCA.toLocaleString('fr-FR')}</div><div class="sl">CA Total Licences</div></div>
+    <div class="st"><div class="sv">${tAbo.toLocaleString('fr-FR')}</div><div class="sl">Abonnements</div></div>
+    <div class="st p"><div class="sv">${tAct.toLocaleString('fr-FR')}</div><div class="sl">Activations</div></div>
+    <div class="st o"><div class="sv">${tRem.toLocaleString('fr-FR')}</div><div class="sl">Remises accordées</div></div>
+    <div class="st"><div class="sv">${tNb}</div><div class="sl">Licences générées</div></div>
+    <div class="st g"><div class="sv">${tNb?Math.round(tCA/tNb).toLocaleString('fr-FR'):0}</div><div class="sl">Panier moyen</div></div>`;
+  document.getElementById('rp-th').innerHTML='<th>Période</th><th style="text-align:right">Abonnements</th><th style="text-align:right">Activations</th><th style="text-align:right">Remises</th><th style="text-align:right">CA Total</th><th style="text-align:right">Licences</th>';
+  document.getElementById('rp-tb').innerHTML=keys.length?keys.map(k=>{
+    const g=grp[k];const tot=g.abo+g.act;
+    return`<tr><td style="font-weight:600">${lblKey(k)}</td>
+      <td style="text-align:right">${g.abo.toLocaleString('fr-FR')}</td>
+      <td style="text-align:right;color:var(--purple)">${g.act?g.act.toLocaleString('fr-FR'):'—'}</td>
+      <td style="text-align:right;color:var(--red)">${g.rem?'-'+g.rem.toLocaleString('fr-FR'):'—'}</td>
+      <td style="text-align:right;font-weight:700;color:var(--green)">${tot.toLocaleString('fr-FR')}</td>
+      <td style="text-align:right">${g.nb||'—'}</td></tr>`;}).join('')
+    :'<tr><td colspan="7" style="text-align:center;color:var(--g400);padding:22px">Aucune donnée</td></tr>';
+  const moisLabel=moisSel?' — '+MOIS[parseInt(moisSel)-1]:trimSel?' — '+trimSel:'';
+  document.getElementById('rp-tf').innerHTML=`<tr style="background:var(--navy);color:#fff;font-weight:700">
+    <td style="padding:10px 12px">TOTAL ${annee}${moisLabel}</td>
+    <td style="text-align:right;padding:10px 12px">${tAbo.toLocaleString('fr-FR')}</td>
+    <td style="text-align:right;padding:10px 12px">${tAct.toLocaleString('fr-FR')}</td>
+    <td style="text-align:right;padding:10px 12px;color:var(--gold)">${tRem?'-'+tRem.toLocaleString('fr-FR'):'—'}</td>
+    <td style="text-align:right;padding:10px 12px;color:var(--gold)">${tCA.toLocaleString('fr-FR')}</td>
+    <td style="text-align:right;padding:10px 12px">${tNb}</td></tr>`;
+  setTimeout(rRapFormules,50);
+}
+// appelée par rRap
+function rRapFormules(){
+  const annee=document.getElementById('rp-annee')?.value||String(new Date().getFullYear());
+  const moisSel=document.getElementById('rp-mois')?.value||'';
+  function matchDate(d){
+    if(!d) return false;
+    if(d.substring(0,4)!==annee) return false;
+    if(moisSel&&d.substring(5,7)!==moisSel) return false;
+    return true;
+  }
+  const hist=(db.historique||[]).filter(h=>matchDate(h.date));
+  const byFormule={};
+  hist.forEach(h=>{
+    const f=h.offre||'Non définie';
+    if(!byFormule[f]) byFormule[f]={ca:0,nb:0};
+    byFormule[f].ca+=(Number(h.abonnement)||0)+(Number(h.activation)||0);
+    byFormule[f].nb++;
+  });
+  const colors=['var(--purple)','var(--blue)','var(--green)','var(--orange)','var(--navy)'];
+  const totalCA=Object.values(byFormule).reduce((s,v)=>s+v.ca,0)||1;
+  const totalNb=Object.values(byFormule).reduce((s,v)=>s+v.nb,0)||1;
+  const sorted=Object.entries(byFormule).sort((a,b)=>b[1].ca-a[1].ca);
+  const elCA=document.getElementById('rp-formules');
+  const elNb=document.getElementById('rp-formules-nb');
+  if(!elCA||!elNb) return;
+  elCA.innerHTML=sorted.length?sorted.map(([f,v],i)=>{
+    const pct=Math.round(v.ca/totalCA*100);const col=colors[i%colors.length];
+    return`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:12px;font-weight:600;color:${col}">${f}</span>
+        <span style="font-size:12px;color:var(--g500)">${Number(v.ca).toLocaleString('fr-FR')} FCFA · ${pct}%</span>
+      </div>
+      <div class="pgb"><div class="pgbf" style="width:${pct}%;background:${col}"></div></div>
+    </div>`;}).join(''):'<p style="color:var(--g400);font-size:12px">Aucune donnée</p>';
+  elNb.innerHTML=sorted.length?sorted.map(([f,v],i)=>{
+    const pct=Math.round(v.nb/totalNb*100);const col=colors[i%colors.length];
+    return`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:12px;font-weight:600;color:${col}">${f}</span>
+        <span style="font-size:12px;color:var(--g500)">${v.nb} licence(s) · ${pct}%</span>
+      </div>
+      <div class="pgb"><div class="pgbf" style="width:${pct}%;background:${col}"></div></div>
+    </div>`;}).join(''):'<p style="color:var(--g400);font-size:12px">Aucune donnée</p>';
+}
+
+function exportRapCSV(){
+  const rows=['"Période","Abonnements","Activations","Remises","CA Total","Licences"'];
+  document.querySelectorAll('#rp-tb tr').forEach(tr=>{
+    const c=[...tr.querySelectorAll('td')].map(td=>'"'+td.textContent.trim()+'"');
+    if(c.length)rows.push(c.join(','));
+  });
+  const b=new Blob(['\ufeff'+rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download=`kynsdev_rapport_${document.getElementById('rp-per').value}_${new Date().toISOString().split('T')[0]}.csv`;
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+// HISTORIQUE
+function rHist(){
+  const h=[...db.historique].sort((a,b)=>b.date.localeCompare(a.date));
+  document.getElementById('h-cnt').textContent=`${h.length} licence(s)`;
+  const tb=document.getElementById('h-tb');
+  if(!h.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--g400);padding:22px">Aucun historique</td></tr>';return;}
+  tb.innerHTML=h.map(x=>`<tr>
+    <td style="font-size:11px">${fd(x.date)}</td>
+    <td style="font-weight:600;color:var(--navy)">${x.nom}</td>
+    <td><span style="font-family:var(--mono);font-size:10px;background:var(--g100);padding:2px 6px;border-radius:4px;color:var(--navy);cursor:pointer" onclick="navigator.clipboard.writeText('${x.cle||''}').then(()=>alert('✅ Clé copiée !'))" title="Cliquer pour copier">${x.cle?x.cle.substring(0,12)+'…':'—'}</span></td>
+    <td>${x.remise?`<span class="bx bo">-${fm(x.remise)}</span>`:'—'}</td>
+    <td style="font-size:11px">${fd(x.expiration)}</td>
+    <td style="color:var(--blue)">${x.nbMois?x.nbMois+' mois':x.duree?x.duree+'j':'—'}</td>
+    <td style="color:var(--purple)">${x.offre||'—'}</td>
+    <td>${fm(x.abonnement)}</td>
+    <td style="color:var(--purple)">${x.activation?fm(x.activation):'—'}</td>
+    <td style="font-weight:700;color:var(--green)">${fm((Number(x.abonnement)||0)+(Number(x.activation)||0))}</td>
+    <td style="font-size:11px;color:var(--g400)">${x.note||'—'}</td></tr>`).join('');
+}
+function exportH(){
+  const h=db.historique;if(!h.length){alert('Aucun historique.');return;}
+  const hdr='"Date","Mutuelle","Clé de licence","Expiration","Durée (j)","Formule","Abonnement","Activation","Remise","Total","Note"';
+  const rows=h.map(x=>[fd(x.date),x.nom,x.cle||'',fd(x.expiration),x.duree||0,x.offre||'',x.abonnement||0,x.activation||0,x.remise||0,(Number(x.abonnement)||0)+(Number(x.activation)||0),x.note||''].map(v=>`"${v}"`).join(','));
+  const b=new Blob(['\uFEFF'+[hdr,...rows].join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='kynsdev_historique.csv';document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+// CONFIG
+function saveConfig(){
+  const url=document.getElementById('cfg-url')?.value.trim()||'';
+  if(!url){alert('Saisissez l\'URL GAS.');return;}
+  setGasUrl(url);
+  startAutoSync();
+  forceSyncNow();
+}
+function initConfigPage(){
+  const u=document.getElementById('cfg-url');
+  if(u){
+    const local=localStorage.getItem('kynsdev_gas_url')||'';
+    u.value=(local&&!local.includes('VOTRE_URL'))?local:(!EMBEDDED_GAS_URL.includes('VOTRE_URL')?EMBEDDED_GAS_URL:'');
+  }
+  const info=document.getElementById('cfg-embed-info');
+  if(info){
+    if(!EMBEDDED_GAS_URL.includes('VOTRE_URL')){
+      info.innerHTML='✅ URL embarquée active — aucune configuration manuelle requise sur les autres postes';
+      info.className='ae ae-s'; info.style.display='block';
+    } else {
+      info.innerHTML='ℹ️ Remplacez <strong>VOTRE_URL_GAS_ICI</strong> dans le fichier HTML pour éviter toute configuration sur les autres postes.';
+      info.className='ae ae-i'; info.style.display='block';
+    }
+  }
+  updateCfgDot();
+}
+async function testConfig(){
+  const url=document.getElementById('cfg-url')?.value.trim();
+  if(!url){alert('Saisissez l\'URL d\'abord.');return;}
+  setGasUrl(url);
+  const el=document.getElementById('cfg-status');
+  if(el){el.className='ae ae-i';el.style.display='block';el.innerHTML='⏳ Test en cours…';}
+  const data=await gasGet('getAll');
+  if(data&&!data.error){
+    if(el){el.className='ae ae-s';el.innerHTML=`✅ Connexion OK — ${data.clients?.length||0} client(s) trouvé(s)`;}
+    if(data.clients) db.clients=data.clients;
+    if(data.historique) db.historique=data.historique;
+    saveDB(); setSyncStatus('ok');
+  } else {
+    if(el){el.className='ae ae-e';el.innerHTML='❌ Connexion échouée — vérifiez l\'URL';}
+    setSyncStatus('err');
+  }
+}
+async function forceSyncNow(){
+  setSyncStatus('loading');
+  const data=await gasGet('getAll');
+  const tar=await gasGet('getTarifs');
+  if(data&&!data.error){
+    if(data.clients) db.clients=data.clients;
+    if(data.historique) db.historique=data.historique;
+    saveDB();
+    if(tar&&tar.offres){tarifs=tar;saveTD();}
+    setSyncStatus('ok');
+    const el=document.getElementById('cfg-status');
+    if(el){el.className='ae ae-s';el.style.display='block';el.innerHTML=`✅ Synchronisé — ${db.clients.length} client(s) · ${db.historique.length} entrée(s)`;}
+    rDash();
+  } else { setSyncStatus('err'); }
+}
+async function migrateToSheets(){
+  if(!isOnline()){alert('Configurez l\'URL GAS d\'abord.');return;}
+  if(!confirm(`Migrer ${db.clients.length} client(s) vers Google Sheets ?`)) return;
+  for(const cl of db.clients) await gasPost('saveClient',cl);
+  for(const h of db.historique) await gasPost('saveHisto',h);
+  await gasPost('saveTarifs',tarifs);
+  setSyncStatus('ok'); alert('✅ Migration terminée !');
+}
+
+
+
+// ═══ RAPPORT SMS ═══
+function initRpSmsSel(){
+  const years=[...new Set([
+    ...(db.smsVentes||[]).map(v=>v.date?.substring(0,4)),
+    String(new Date().getFullYear())
+  ].filter(Boolean))].sort().reverse();
+  const sel=document.getElementById('sms-rp-annee');
+  if(!sel) return;
+  const cur=sel.value||years[0];
+  sel.innerHTML=years.map(y=>`<option value="${y}" ${y===cur?'selected':''}>${y}</option>`).join('');
+  const per=document.getElementById('sms-rp-per').value;
+  const mb=document.getElementById('sms-rp-mois-block');
+  const ms=document.getElementById('sms-rp-mois');
+  const ts=document.getElementById('sms-rp-trim');
+  const lb=document.getElementById('sms-rp-lbl');
+  if(mb){
+    if(per==='annee'){mb.style.display='none';}
+    else if(per==='trimestre'){mb.style.display='block';if(ms)ms.style.display='none';if(ts)ts.style.display='block';if(lb)lb.textContent='Trimestre';}
+    else{mb.style.display='block';if(ms)ms.style.display='block';if(ts)ts.style.display='none';if(lb)lb.textContent='Mois';}
+  }
+}
+function rRapSms(){
+  initRpSmsSel();
+  const per    =document.getElementById('sms-rp-per').value;
+  const annee  =document.getElementById('sms-rp-annee')?.value||String(new Date().getFullYear());
+  const moisSel=per==='mois'?(document.getElementById('sms-rp-mois')?.value||''):'';
+  const trimSel=per==='trimestre'?(document.getElementById('sms-rp-trim')?.value||''):'';
+  const TRIM_MOIS={T1:['01','02','03'],T2:['04','05','06'],T3:['07','08','09'],T4:['10','11','12']};
+  const MOIS=['Janvier','Février','Mars','Avril','Mai','Juin','Juillet','Août','Septembre','Octobre','Novembre','Décembre'];
+  const MOIS_COURT=['Jan','Fév','Mar','Avr','Mai','Jun','Jul','Aoû','Sep','Oct','Nov','Déc'];
+  function matchDate(d){
+    if(!d||d.substring(0,4)!==annee) return false;
+    if(moisSel&&d.substring(5,7)!==moisSel) return false;
+    if(trimSel&&!TRIM_MOIS[trimSel]?.includes(d.substring(5,7))) return false;
+    return true;
+  }
+  function getKey(d){
+    const mo=d.substring(5,7);
+    if(per==='mois')      return annee+'-'+mo;
+    if(per==='trimestre'){const q=Math.ceil(parseInt(mo)/3);return annee+'-T'+q;}
+    return annee;
+  }
+  function lblKey(k){
+    if(per==='mois')      return MOIS_COURT[parseInt(k.split('-')[1])-1]+' '+annee;
+    if(per==='trimestre') return k.split('-')[1]+' '+annee;
+    return k;
+  }
+  const ventes=(db.smsVentes||[]).filter(v=>matchDate(v.date));
+  const grp={};
+  ventes.forEach(v=>{
+    const k=getKey(v.date);
+    if(!grp[k])grp[k]={ca:0,achat:0,ben:0,sms:0,nb:0};
+    grp[k].ca  +=(Number(v.prixVente)||0)*(Number(v.qty)||1);
+    grp[k].achat+=(Number(v.prixAchat)||0)*(Number(v.qty)||1);
+    grp[k].ben +=(Number(v.benefice)||0)*(Number(v.qty)||1);
+    grp[k].sms +=(Number(v.sms)||0)*(Number(v.qty)||1);
+    grp[k].nb++;
+  });
+  const keys=Object.keys(grp).sort();
+  const tCA  =Object.values(grp).reduce((s,g)=>s+g.ca,0);
+  const tAch =Object.values(grp).reduce((s,g)=>s+g.achat,0);
+  const tBen =Object.values(grp).reduce((s,g)=>s+g.ben,0);
+  const tSms =Object.values(grp).reduce((s,g)=>s+g.sms,0);
+  const tNb  =Object.values(grp).reduce((s,g)=>s+g.nb,0);
+  // Stats
+  document.getElementById('sms-rp-st').innerHTML=`
+    <div class="st g"><div class="sv">${tCA.toLocaleString('fr-FR')}</div><div class="sl">CA Total SMS</div></div>
+    <div class="st"><div class="sv">${tAch.toLocaleString('fr-FR')}</div><div class="sl">Coût d'achat</div></div>
+    <div class="st g"><div class="sv">${tBen.toLocaleString('fr-FR')}</div><div class="sl">Bénéfice net</div></div>
+    <div class="st p"><div class="sv">${tCA?Math.round(tBen/tCA*100)+'%':'0%'}</div><div class="sl">Marge</div></div>
+    <div class="st"><div class="sv">${tSms.toLocaleString('fr-FR')}</div><div class="sl">SMS vendus</div></div>
+    <div class="st"><div class="sv">${tNb}</div><div class="sl">Ventes</div></div>`;
+  // Tableau
+  document.getElementById('sms-rp-th').innerHTML='<th>Période</th><th style="text-align:right">CA ventes</th><th style="text-align:right">Coût achat</th><th style="text-align:right">Bénéfice</th><th style="text-align:right">Marge</th><th style="text-align:right">SMS vendus</th><th style="text-align:right">Ventes</th>';
+  document.getElementById('sms-rp-tb').innerHTML=keys.length?keys.map(k=>{
+    const g=grp[k];const marge=g.ca?Math.round(g.ben/g.ca*100):0;
+    return`<tr><td style="font-weight:600">${lblKey(k)}</td>
+      <td style="text-align:right;font-weight:600">${g.ca.toLocaleString('fr-FR')}</td>
+      <td style="text-align:right;color:var(--red)">${g.achat.toLocaleString('fr-FR')}</td>
+      <td style="text-align:right;color:var(--green);font-weight:700">+${g.ben.toLocaleString('fr-FR')}</td>
+      <td style="text-align:right;color:var(--purple)">${marge}%</td>
+      <td style="text-align:right">${g.sms.toLocaleString('fr-FR')}</td>
+      <td style="text-align:right">${g.nb}</td></tr>`;}).join('')
+    :'<tr><td colspan="7" style="text-align:center;color:var(--g400);padding:22px">Aucune vente SMS pour cette période</td></tr>';
+  const moisLabel=moisSel?' — '+MOIS[parseInt(moisSel)-1]:trimSel?' — '+trimSel:'';
+  document.getElementById('sms-rp-tf').innerHTML=`<tr style="background:var(--navy);color:#fff;font-weight:700">
+    <td style="padding:10px 12px">TOTAL ${annee}${moisLabel}</td>
+    <td style="text-align:right;padding:10px 12px">${tCA.toLocaleString('fr-FR')}</td>
+    <td style="text-align:right;padding:10px 12px;color:#FCA5A5">${tAch.toLocaleString('fr-FR')}</td>
+    <td style="text-align:right;padding:10px 12px;color:var(--gold)">+${tBen.toLocaleString('fr-FR')}</td>
+    <td style="text-align:right;padding:10px 12px;color:var(--gold)">${tCA?Math.round(tBen/tCA*100):0}%</td>
+    <td style="text-align:right;padding:10px 12px">${tSms.toLocaleString('fr-FR')}</td>
+    <td style="text-align:right;padding:10px 12px">${tNb}</td></tr>`;
+  // Répartition par pack
+  const byPack={};
+  ventes.forEach(v=>{
+    const lbl=v.label||v.packId||'—';
+    if(!byPack[lbl])byPack[lbl]={ca:0,ben:0,nb:0};
+    byPack[lbl].ca +=(Number(v.prixVente)||0)*(Number(v.qty)||1);
+    byPack[lbl].ben+=(Number(v.benefice)||0)*(Number(v.qty)||1);
+    byPack[lbl].nb++;
+  });
+  const colors=['var(--blue)','var(--purple)','var(--green)','var(--orange)'];
+  const totCA=Object.values(byPack).reduce((s,v)=>s+v.ca,0)||1;
+  const totBen=Object.values(byPack).reduce((s,v)=>s+v.ben,0)||1;
+  const sorted=Object.entries(byPack).sort((a,b)=>b[1].ca-a[1].ca);
+  const elCA=document.getElementById('sms-rp-packs');
+  const elBen=document.getElementById('sms-rp-ben');
+  if(elCA) elCA.innerHTML=sorted.length?sorted.map(([f,v],i)=>{
+    const pct=Math.round(v.ca/totCA*100);const col=colors[i%colors.length];
+    return`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:12px;font-weight:600;color:${col}">${f}</span>
+        <span style="font-size:12px;color:var(--g500)">${v.ca.toLocaleString('fr-FR')} FCFA · ${pct}%</span>
+      </div>
+      <div class="pgb"><div class="pgbf" style="width:${pct}%;background:${col}"></div></div>
+    </div>`;}).join(''):'<p style="color:var(--g400);font-size:12px">Aucune donnée</p>';
+  if(elBen) elBen.innerHTML=sorted.length?sorted.map(([f,v],i)=>{
+    const pct=Math.round(v.ben/totBen*100);const col=colors[i%colors.length];
+    return`<div style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;margin-bottom:3px">
+        <span style="font-size:12px;font-weight:600;color:${col}">${f}</span>
+        <span style="font-size:12px;color:var(--g500)">+${v.ben.toLocaleString('fr-FR')} FCFA · ${pct}%</span>
+      </div>
+      <div class="pgb"><div class="pgbf" style="width:${pct}%;background:${col}"></div></div>
+    </div>`;}).join(''):'<p style="color:var(--g400);font-size:12px">Aucune donnée</p>';
+}
+function exportRapSmsCSV(){
+  const rows=['"Période","CA ventes","Coût achat","Bénéfice","Marge %","SMS vendus","Ventes"'];
+  document.querySelectorAll('#sms-rp-tb tr').forEach(tr=>{
+    const cells=[...tr.querySelectorAll('td')].map(td=>'"'+td.textContent.trim()+'"');
+    if(cells.length) rows.push(cells.join(','));
+  });
+  const b=new Blob([String.fromCharCode(0xFEFF)+rows.join('\n')],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);
+  a.download='rapport_sms_'+new Date().toISOString().split('T')[0]+'.csv';
+  document.body.appendChild(a);a.click();document.body.removeChild(a);
+}
+
+// ═══════════════════════════════════════
+// VENTES SMS
+// ═══════════════════════════════════════
+const SMS_PACKS = [
+  {id:'p1', label:'Pack 60 SMS',  sms:60,  prixVente:1300,  prixAchat:1100,  benefice:200,  color:'var(--blue)'},
+  {id:'p2', label:'Pack 150 SMS', sms:150, prixVente:3000,  prixAchat:2600,  benefice:400,  color:'var(--purple)'},
+  {id:'p3', label:'Pack 750 SMS', sms:750, prixVente:15000, prixAchat:12250, benefice:2750, color:'var(--green)'},
+];
+let _selPack=null;
+let _smsEditId=null;
+
+function renderSms(){
+  const ventes=db.smsVentes||[];
+  const totVentes=ventes.reduce((s,v)=>s+(Number(v.prixVente)||0)*(Number(v.qty)||1),0);
+  const totBen=ventes.reduce((s,v)=>s+(Number(v.benefice)||0)*(Number(v.qty)||1),0);
+  const totAchat=ventes.reduce((s,v)=>s+(Number(v.prixAchat)||0)*(Number(v.qty)||1),0);
+  const totSms=ventes.reduce((s,v)=>s+(Number(v.sms)||0)*(Number(v.qty)||1),0);
+  document.getElementById('sms-stats').innerHTML=`
+    <div class="st"><div class="sv">${ventes.length}</div><div class="sl">Ventes</div></div>
+    <div class="st"><div class="sv">${totSms.toLocaleString('fr-FR')}</div><div class="sl">SMS vendus</div></div>
+    <div class="st g"><div class="sv">${(totVentes/1000).toFixed(0)}K</div><div class="sl">CA SMS (FCFA)</div></div>
+    <div class="st"><div class="sv">${(totAchat/1000).toFixed(0)}K</div><div class="sl">Coût d'achat</div></div>
+    <div class="st g"><div class="sv">${(totBen/1000).toFixed(0)}K</div><div class="sl">Bénéfice net</div></div>
+    <div class="st p"><div class="sv">${totVentes?Math.round(totBen/totVentes*100)+'%':'0%'}</div><div class="sl">Marge</div></div>`;
+  const tb=document.getElementById('sms-tb');
+  if(!ventes.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--g400);padding:22px">Aucune vente SMS enregistrée</td></tr>';return;}
+  const sorted=[...ventes].sort((a,b)=>(b.date||'').localeCompare(a.date||''));
+  tb.innerHTML=sorted.map(v=>{
+    const cl=db.clients.find(x=>x.id===v.clientId);
+    const pk=SMS_PACKS.find(p=>p.id===v.packId)||{};
+    const ben=(Number(v.benefice)||0)*(Number(v.qty)||1);
+    const pv=(Number(v.prixVente)||0)*(Number(v.qty)||1);
+    const pa=(Number(v.prixAchat)||0)*(Number(v.qty)||1);
+    return`<tr>
+      <td style="font-size:11px">${fd(v.date)}</td>
+      <td style="font-weight:600;color:var(--navy)">${cl?cl.nom:v.clientNom||'—'}</td>
+      <td><span class="bx bp">${pk.label||'—'}</span></td>
+      <td style="text-align:right;font-family:var(--mono)">${((Number(v.sms)||0)*(Number(v.qty)||1)).toLocaleString('fr-FR')}</td>
+      <td style="text-align:right;color:var(--navy);font-weight:600">${fm(pv)}</td>
+      <td style="text-align:right;color:var(--red);font-size:11px">${fm(pa)}</td>
+      <td style="text-align:right;color:var(--green);font-weight:700">${fm(ben)}</td>
+      <td style="font-size:11px;color:var(--g400)">${v.note||'—'}</td>
+      <td><button class="btn br2 bsm" onclick="deleteSmsVente('${v.id}')">✕</button></td>
+    </tr>`;}).join('');
+}
+
+function openAddSms(){
+  _smsEditId=null;
+  document.getElementById('msms-t').textContent='Enregistrer une vente SMS';
+  document.getElementById('msms-date').value=new Date().toISOString().split('T')[0];
+  document.getElementById('msms-qty').value=1;
+  document.getElementById('msms-note').value='';
+  document.getElementById('msms-err').style.display='none';
+  document.getElementById('msms-recap').style.display='none';
+  // Remplir select clients
+  const sel=document.getElementById('msms-cl');
+  sel.innerHTML='<option value="">— Client libre —</option>'
+    +db.clients.map(c=>`<option value="${c.id}">${c.nom}</option>`).join('');
+  // Remplir packs
+  const pEl=document.getElementById('msms-packs');
+  const packs=tarifs.smsPacks||SMS_PACKS;
+  pEl.innerHTML=packs.map((p,i)=>`
+    <label id="sms-lbl-${p.id}" style="display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border:1.5px solid var(--g200);border-radius:8px;cursor:pointer;transition:all .15s">
+      <input type="radio" name="msms-pack" value="${p.id}" onchange="onPickSms('${p.id}')" style="margin-top:2px"/>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:var(--navy)">${p.label} — ${p.sms.toLocaleString('fr-FR')} SMS</div>
+        <div style="display:flex;gap:16px;margin-top:3px;font-size:11px">
+          <span style="color:var(--navy)">Prix vente : <strong>${Number(p.prixVente).toLocaleString('fr-FR')} FCFA</strong></span>
+          <span style="color:var(--red)">Achat : ${Number(p.prixAchat).toLocaleString('fr-FR')} FCFA</span>
+          <span style="color:var(--green);font-weight:700">Bénéfice : +${Number(p.benefice).toLocaleString('fr-FR')} FCFA</span>
+        </div>
+      </div>
+    </label>`).join('');
+  _selPack=null;
+  OM('m-sms');
+}
+
+function onPickSms(packId){
+  _selPack=(tarifs.smsPacks||SMS_PACKS).find(p=>p.id===packId);
+  (tarifs.smsPacks||SMS_PACKS).forEach(p=>{
+    const el=document.getElementById('sms-lbl-'+p.id);
+    if(el) el.style.cssText=`display:flex;align-items:flex-start;gap:10px;padding:10px 12px;border-radius:8px;cursor:pointer;transition:all .15s;border:${p.id===packId?'2px solid var(--purple);background:#EDE9FE':'1.5px solid var(--g200)'}`;
+  });
+  calcSmsTotal();
+}
+
+function calcSmsTotal(){
+  if(!_selPack){document.getElementById('msms-recap').style.display='none';return;}
+  const qty=parseInt(document.getElementById('msms-qty').value)||1;
+  const pv=_selPack.prixVente*qty;
+  const pa=_selPack.prixAchat*qty;
+  const ben=_selPack.benefice*qty;
+  document.getElementById('msms-recap').style.display='block';
+  document.getElementById('msms-r-pack').textContent=`${_selPack.label} · ${_selPack.sms.toLocaleString('fr-FR')} SMS`;
+  document.getElementById('msms-r-qty').textContent=qty+' commande(s)';
+  document.getElementById('msms-r-prix').textContent=Number(pv).toLocaleString('fr-FR')+' FCFA';
+  document.getElementById('msms-r-cout').textContent='-'+Number(pa).toLocaleString('fr-FR')+' FCFA';
+  document.getElementById('msms-r-ben').textContent='+'+Number(ben).toLocaleString('fr-FR')+' FCFA';
+}
+
+function saveSmsVente(){
+  if(!_selPack){
+    document.getElementById('msms-err').textContent='Sélectionnez un package.';
+    document.getElementById('msms-err').style.display='block'; return;
+  }
+  const qty=parseInt(document.getElementById('msms-qty').value)||1;
+  const clId=document.getElementById('msms-cl').value;
+  const cl=db.clients.find(x=>x.id===clId);
+  const vente={
+    id:uid(), packId:_selPack.id, label:_selPack.label,
+    sms:_selPack.sms, prixVente:_selPack.prixVente, prixAchat:_selPack.prixAchat,
+    benefice:_selPack.benefice, qty,
+    clientId:clId||null, clientNom:cl?cl.nom:'',
+    date:document.getElementById('msms-date').value,
+    note:document.getElementById('msms-note').value.trim(),
+  };
+  if(!db.smsVentes) db.smsVentes=[];
+  db.smsVentes.push(vente);
+  saveDB();
+  // Sync Sheets
+  gasPost('saveSmsVente', vente).catch(()=>{});
+  CM('m-sms'); renderSms();
+}
+
+function deleteSmsVente(id){
+  if(!confirm('Supprimer cette vente ?')) return;
+  db.smsVentes=(db.smsVentes||[]).filter(v=>v.id!==id);
+  saveDB();
+  gasPost('deleteSmsVente',{id}).catch(()=>{});
+  renderSms();
+}
+
+// INIT
+if(!checkSession()) { /* attendre login */ }
+const _gasUrl=getGasUrl();
+if(_gasUrl){ setSyncStatus('loading'); loadFromSheets(); }
+else {
+  setSyncStatus('off');
+  // Afficher l'onglet config si aucune URL configurée
+  const sbiCfg=document.getElementById('sbi-config');
+  if(sbiCfg) sbiCfg.style.display='flex';
+}
+rDash();
+
+async function submitChangePwd(){
+  const o=document.getElementById('pwd-old').value;
+  const n=document.getElementById('pwd-new').value;
+  const conf=document.getElementById('pwd-conf').value;
+  const msg=document.getElementById('pwd-msg');
+  if(n!==conf){msg.style.color='var(--red)';msg.textContent='❌ Les nouveaux codes ne correspondent pas.';return;}
+  const ok=await changePassword(o,n);
+  if(ok){
+    msg.style.color='var(--green)';
+    msg.textContent='✅ Code modifié — il sera demandé à la prochaine ouverture.';
+    ['pwd-old','pwd-new','pwd-conf'].forEach(id=>document.getElementById(id).value='');
+  } else {
+    msg.style.color='var(--red)';
+    msg.textContent='❌ Ancien code incorrect.';
+  }
+}
+
+function toggleConfigMenu(){
+  const el=document.getElementById('sbi-config');
+  if(!el) return;
+  const visible=el.style.display==='flex';
+  el.style.display=visible?'none':'flex';
+  if(!visible) nav('config');
+}
+
+// ── Auto-synchronisation toutes les 2 minutes (si GAS configuré)
+let _autoSyncInterval=null;
+function startAutoSync(){
+  if(_autoSyncInterval) clearInterval(_autoSyncInterval);
+  if(!isOnline()) return;
+  _autoSyncInterval=setInterval(async()=>{
+    const data=await gasGet('getAll');
+    const tar =await gasGet('getTarifs');
+    if(data&&!data.error){
+      let changed=false;
+      if(JSON.stringify(data.clients)!==JSON.stringify(db.clients)){
+        db.clients=data.clients; changed=true;
+      }
+      if(JSON.stringify(data.historique)!==JSON.stringify(db.historique)){
+        db.historique=data.historique; changed=true;
+      }
+      if(data.smsVentes&&JSON.stringify(data.smsVentes)!==JSON.stringify(db.smsVentes)){
+        db.smsVentes=data.smsVentes; changed=true;
+      }
+      if(tar&&tar.offres&&JSON.stringify(tar)!==JSON.stringify(tarifs)){
+        tarifs=tar; saveTD(); changed=true;
+      }
+      if(changed){
+        saveDB();
+        setSyncStatus('ok');
+        // Rafraîchir la page active
+        const actPage=document.querySelector('.page.active');
+        if(actPage){
+          const id=actPage.id.replace('page-','');
+          ({dashboard:rDash,clients:rClients,historique:rHist,sms:renderSms})[id]?.();
+        }
+      }
+    }
+  }, 2*60*1000); // toutes les 2 minutes
+}
+startAutoSync();
+</script>
+</body>
+</html>
