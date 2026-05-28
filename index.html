@@ -64,10 +64,39 @@ tfoot tr td{padding:10px 12px}
 .pgbf{height:100%;border-radius:99px}
 .inp{padding:7px 10px;border:1.5px solid var(--g200);border-radius:7px;font-size:12px;font-family:inherit;outline:none;width:100%}
 .inp:focus{border-color:var(--navy)}
+
+  /* ── LOGIN ── */
+  .login-screen{position:fixed;inset:0;background:var(--navy);display:flex;align-items:center;justify-content:center;z-index:9999}
+  .login-box{background:#fff;border-radius:16px;padding:40px 36px;width:100%;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+  .login-logo{font-size:48px;margin-bottom:12px}
+  .login-title{font-size:22px;font-weight:700;color:var(--navy);margin-bottom:4px}
+  .login-sub{font-size:13px;color:var(--g400);margin-bottom:28px}
+  .login-input{width:100%;padding:12px 16px;border:2px solid var(--g200);border-radius:10px;font-size:16px;text-align:center;letter-spacing:6px;font-family:var(--mono);outline:none;transition:border .2s;margin-bottom:8px}
+  .login-input:focus{border-color:var(--navy)}
+  .login-btn{width:100%;padding:13px;background:var(--navy);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;transition:background .2s}
+  .login-btn:hover{background:var(--navy2)}
+  .login-err{color:var(--red);font-size:12px;min-height:18px;margin-top:4px}
+  .login-footer{font-size:11px;color:var(--g400);margin-top:20px}
 </style>
 </head>
 <body>
-<div class="shell">
+
+<!-- ══ ÉCRAN DE CONNEXION ══ -->
+<div class="login-screen" id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">⚡</div>
+    <div class="login-title">KynsDev CRM</div>
+    <div class="login-sub">Gestion des licences · Accès sécurisé</div>
+    <input type="password" id="login-pwd" class="login-input" placeholder="• • • • • •"
+      maxlength="20" onkeydown="if(event.key==='Enter')checkLogin()"
+      autocomplete="current-password"/>
+    <div class="login-err" id="login-err"></div>
+    <button class="login-btn" onclick="checkLogin()">🔓 Accéder au CRM</button>
+    <div class="login-footer">KynsDev · kynsinvest@gmail.com</div>
+  </div>
+</div>
+
+<div class="shell" id="crm-shell" style="display:none">
 <div class="sidebar">
   <div class="sb-logo" ondblclick="toggleConfigMenu()" title="Double-cliquer pour la configuration" style="cursor:pointer">
   <h1>⚡ KynsDev CRM</h1>
@@ -89,7 +118,8 @@ tfoot tr td{padding:10px 12px}
     <!-- Config accessible via double-clic sur le logo -->
     <div id="sbi-config" style="display:none" class="sbi" onclick="nav('config')">⚙️ Configuration</div>
   </div>
-  <div class="sb-foot" style="display:flex;align-items:center;gap:8px"><div id="sync-dot" title="Non configuré" style="width:8px;height:8px;border-radius:50%;background:#9CA3AF;flex-shrink:0"></div><span>KynsDev © 2026</span></div>
+  <div class="sb-foot" style="display:flex;align-items:center;justify-content:space-between">
+    <button onclick="logout()" style="background:none;border:1px solid rgba(255,255,255,.2);color:rgba(255,255,255,.5);border-radius:6px;padding:3px 8px;cursor:pointer;font-size:10px">🚪 Quitter</button><div id="sync-dot" title="Non configuré" style="width:8px;height:8px;border-radius:50%;background:#9CA3AF;flex-shrink:0"></div><span>KynsDev © 2026</span></div>
 </div>
 <div class="main">
 
@@ -453,6 +483,18 @@ tfoot tr td{padding:10px 12px}
     </div>
     <button class="btn bgh bsm" onclick="forceSyncNow()">🔄 Synchroniser maintenant</button>
   </div>
+  <div class="card" style="max-width:600px;border-left:4px solid var(--red)">
+    <div class="ctitle">🔐 Changer le code d'accès</div>
+    <div style="font-size:12px;color:var(--g500);margin-bottom:12px">Le code par défaut est <strong>123</strong> — changez-le immédiatement.</div>
+    <div class="frow">
+      <div class="fld"><label>Ancien code</label><input type="password" id="pwd-old" class="inp" placeholder="Ancien code"/></div>
+      <div class="fld"><label>Nouveau code</label><input type="password" id="pwd-new" class="inp" placeholder="Nouveau code (min 4 car.)"/></div>
+    </div>
+    <div class="fld"><label>Confirmer nouveau code</label><input type="password" id="pwd-conf" class="inp" placeholder="Répéter le nouveau code"/></div>
+    <button class="btn br2" onclick="submitChangePwd()" style="margin-top:4px">🔐 Changer le code</button>
+    <div id="pwd-msg" style="font-size:12px;margin-top:8px;min-height:16px"></div>
+  </div>
+
   <div class="card" style="max-width:600px">
     <div class="ctitle">📖 Guide rapide</div>
     <div style="font-size:13px;color:var(--g700);line-height:2.2">
@@ -564,6 +606,65 @@ tfoot tr td{padding:10px 12px}
 </div>
 
 <script>
+// ══ AUTHENTIFICATION CRM ══
+// Code par défaut : 123 → CHANGER dans ⚙️ Configuration
+const CRM_PASSWORD_HASH='a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3';
+async function sha256Login(t){const b=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return Array.from(new Uint8Array(b)).map(x=>x.toString(16).padStart(2,'0')).join('');}
+async function checkLogin(){
+  const pwd=document.getElementById('login-pwd').value;
+  const err=document.getElementById('login-err');
+  if(!pwd){err.textContent='Saisissez le code d\'accès.';return;}
+  const hash=await sha256Login(pwd);
+  const stored=localStorage.getItem('crm_pwd_hash')||CRM_PASSWORD_HASH;
+  if(hash===stored){
+    localStorage.setItem('crm_session',hash.substring(0,16));
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('crm-shell').style.display='flex';
+    err.textContent='';
+  } else {
+    err.textContent='❌ Code incorrect';
+    document.getElementById('login-pwd').value='';
+    document.getElementById('login-pwd').focus();
+  }
+}
+function checkSession(){
+  const session=localStorage.getItem('crm_session');
+  const stored=localStorage.getItem('crm_pwd_hash')||CRM_PASSWORD_HASH;
+  if(session&&session===stored.substring(0,16)){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('crm-shell').style.display='flex';
+    return true;
+  }
+  setTimeout(()=>document.getElementById('login-pwd')?.focus(),100);
+  return false;
+}
+function logout(){localStorage.removeItem('crm_session');location.reload();}
+async function changePassword(oldPwd,newPwd){
+  const stored=localStorage.getItem('crm_pwd_hash')||CRM_PASSWORD_HASH;
+  const oldHash=await sha256Login(oldPwd);
+  if(oldHash!==stored){alert('❌ Ancien code incorrect.');return false;}
+  if(!newPwd||newPwd.length<4){alert('Le nouveau code doit avoir au moins 4 caractères.');return false;}
+  const newHash=await sha256Login(newPwd);
+  localStorage.setItem('crm_pwd_hash',newHash);
+  // Mettre à jour la session avec le nouveau hash
+  localStorage.setItem('crm_session',newHash.substring(0,16));
+  return true;
+}
+async function submitChangePwd(){
+  const o=document.getElementById('pwd-old').value;
+  const n=document.getElementById('pwd-new').value;
+  const conf=document.getElementById('pwd-conf').value;
+  const msg=document.getElementById('pwd-msg');
+  if(n!==conf){msg.style.color='var(--red)';msg.textContent='❌ Les nouveaux codes ne correspondent pas.';return;}
+  const ok=await changePassword(o,n);
+  if(ok){
+    msg.style.color='var(--green)';
+    msg.textContent='✅ Code modifié avec succès !';
+    ['pwd-old','pwd-new','pwd-conf'].forEach(id=>document.getElementById(id).value='');
+  } else {
+    msg.style.color='var(--red)';msg.textContent='❌ Ancien code incorrect.';
+  }
+}
 const DBK='kynsdev_crm_v3',TK='kynsdev_tarifs_v3',MKEY='MUTUELLECI_VENDOR_2026';
 
 // ── URL GAS embarquée — remplacer une seule fois après déploiement GAS
@@ -1885,6 +1986,7 @@ function deleteSmsVente(id){
 }
 
 // INIT
+if(!checkSession()) { /* attendre login */ }
 const _gasUrl=getGasUrl();
 if(_gasUrl){ setSyncStatus('loading'); loadFromSheets(); }
 else {
@@ -1894,6 +1996,23 @@ else {
   if(sbiCfg) sbiCfg.style.display='flex';
 }
 rDash();
+
+async function submitChangePwd(){
+  const o=document.getElementById('pwd-old').value;
+  const n=document.getElementById('pwd-new').value;
+  const conf=document.getElementById('pwd-conf').value;
+  const msg=document.getElementById('pwd-msg');
+  if(n!==conf){msg.style.color='var(--red)';msg.textContent='❌ Les nouveaux codes ne correspondent pas.';return;}
+  const ok=await changePassword(o,n);
+  if(ok){
+    msg.style.color='var(--green)';
+    msg.textContent='✅ Code modifié — il sera demandé à la prochaine ouverture.';
+    ['pwd-old','pwd-new','pwd-conf'].forEach(id=>document.getElementById(id).value='');
+  } else {
+    msg.style.color='var(--red)';
+    msg.textContent='❌ Ancien code incorrect.';
+  }
+}
 
 function toggleConfigMenu(){
   const el=document.getElementById('sbi-config');
