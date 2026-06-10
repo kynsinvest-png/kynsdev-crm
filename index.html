@@ -18,8 +18,8 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--g50);color:var
 .sbi:hover{background:rgba(255,255,255,.1);color:#fff}
 .sbi.active{background:var(--gold);color:var(--navy);font-weight:700}
 .sb-foot{padding:10px 14px;border-top:1px solid rgba(255,255,255,.1);font-size:10px;opacity:.4}
-.main{flex:1;padding:22px;overflow-y:auto;max-height:100vh}
-.page{display:none}.page.active{display:block}
+.main{flex:1;min-width:0;padding:22px;overflow-y:auto;max-height:100vh}
+.page{display:none;width:100%}.page.active{display:block;width:100%}
 .tbar{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:18px;gap:10px;flex-wrap:wrap}
 .tbar h2{font-size:18px;font-weight:700;color:var(--navy)}
 .sub{font-size:12px;color:var(--g400);margin-top:2px}
@@ -594,6 +594,11 @@ tfoot tr td{padding:10px 12px}
       <div class="hp" id="mc-nbm-offre" style="color:var(--purple);font-weight:600;margin-top:6px"></div>
     </div>
     <div class="fr">
+      <div class="fld"><label>Type de compte</label>
+        <select id="mc-type" class="inp">
+          <option value="payant">💳 Payant</option>
+          <option value="essai">🎁 Essai gratuit</option>
+        </select></div>
       <div class="fld"><label>Frais activation (FCFA)</label>
         <input type="number" id="mc-a" class="inp" placeholder="0" step="500"/>
         <div class="hp">Paiement unique 1er achat</div></div>
@@ -895,10 +900,16 @@ function sbg(e){if(!e)return'<span class="bx bn">Sans licence</span>';const j=jr
 function nav(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.sbi').forEach(a=>a.classList.remove('active'));
-  document.getElementById('page-'+id).classList.add('active');
+  const page=document.getElementById('page-'+id);
+  if(page) page.classList.add('active');
   const m={dashboard:0,clients:1,generateur:2,tarifs:3,rapports:4,rapportSms:5,historique:6,sms:7,config:8};
-  document.querySelectorAll('.sbi')[m[id]]?.classList.add('active');
-  ({dashboard:rDash,clients:rClients,generateur:rGen,tarifs:rTarifs,rapports:rRap,historique:rHist})[id]?.();
+  if(m[id]!==undefined) document.querySelectorAll('.sbi')[m[id]]?.classList.add('active');
+  const renders={
+    dashboard:rDash, clients:rClients, generateur:rGen,
+    tarifs:rTarifs, rapports:rRap, rapportSms:rRapSms,
+    historique:rHist, sms:renderSms, config:initConfigPage
+  };
+  if(renders[id]) renders[id]();
 }
 function OM(id){document.getElementById(id).classList.add('open');}
 function CM(id){document.getElementById(id).classList.remove('open');}
@@ -1026,6 +1037,7 @@ function rClients(){
 function openAdd(){
   _eid=null;document.getElementById('mcl-t').textContent='➕ Nouveau client';
   ['mc-n','mc-desc','mc-c','mc-t','mc-e','mc-v','mc-o','mc-a','mc-pkg','mc-url','mc-gas'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=''});
+  const mcType=document.getElementById('mc-type');if(mcType)mcType.value='payant';
   document.querySelectorAll('.mc-module-chk').forEach(el=>{el.checked=true;});
   document.querySelectorAll('input[name="mc-tranche"]').forEach(r=>r.checked=false);
   ['lt1','lt2','lt3','lt4'].forEach(id=>{const el=document.getElementById(id);if(el)el.style.cssText='display:flex;align-items:center;gap:8px;padding:9px 12px;border:1.5px solid var(--g200);border-radius:8px;cursor:pointer;font-size:12px';});
@@ -1048,8 +1060,9 @@ function editCl(id){
     const r=document.querySelector(`input[name="mc-tranche"][value="${c.tranche}"]`);
     if(r){r.checked=true;onTrancheChange(c.tranche);}
   }
-  // type géré par essai dans le générateur
-  document.getElementById('mc-err').style.display='none';OM('m-cl');
+  document.getElementById('mc-err').style.display='none';
+  const mcType=document.getElementById('mc-type');if(mcType)mcType.value=c.type||'payant';
+  OM('m-cl');
 }
 function updT(){ /* type de compte supprimé */ }
 async function saveCl(){
@@ -1087,7 +1100,8 @@ async function saveCl(){
   // Modules activés
   const modulesCoches = [];
   document.querySelectorAll('.mc-module-chk:checked').forEach(el=>modulesCoches.push(el.value));
-  const data={nom,type:'payant',description:desc,tranche,formule,
+  const data={nom, type: document.getElementById('mc-type')?.value||'payant',
+    description:desc, tranche, formule,
     modules:modulesCoches,
     packageApk:document.getElementById('mc-pkg')?.value.trim()||'',
     urlGitHub:document.getElementById('mc-url')?.value.trim()||'',
@@ -1451,224 +1465,39 @@ async function genKey(){
   document.getElementById('r-wa').innerHTML=`<strong>Message WhatsApp :</strong><br>🔑 Renouvellement KynsGestAsso ✅<br>Mutuelle : <strong>${nom}</strong><br>Expiration : <strong>${fd(exp)}</strong><br>Clé : <code>${key}</code><br>➡ App → Tableau de bord → Activer / Renouveler`;
   document.getElementById('g-res').style.display='block';
 }
-function genererFacture(){
-  if(!_gen){alert('Générez d\'abord une clé de licence.');return;}
-  const now     = new Date();
-  const dateStr = now.toLocaleDateString('fr-FR',{day:'2-digit',month:'long',year:'numeric'});
-  const numFact = 'FACT-'+now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-'+String(Math.floor(Math.random()*9000)+1000);
-  const client  = db.clients.find(c=>c.id===_gen.clientId);
-  const nomClient = client?.description||_gen.nom;  // Nom complet si dispo, sinon sigle
-  const sigle     = client?.nom||_gen.nom;
-  const contact   = client?.contact||'';
-  const tel       = client?.tel||'';
-  const email     = client?.email||'';
-  const ville     = client?.ville||'';
-  const modules   = client?.modules?.length ? client.modules.join(', ') : 'Modules standards';
-
-  // Lignes de facturation
-  const lignes = [];
-  if(_gen.activation){
-    lignes.push({desc:'Frais d\'activation — Mise en place et configuration initiale',qte:1,pu:_gen.activation,total:_gen.activation});
-  }
-  lignes.push({
-    desc:`Abonnement KynsGestAsso — Formule ${_gen.offre||'—'} · ${_gen.nbMois} mois`,
-    detail:`Période : ${new Date().toLocaleDateString('fr-FR')} → ${new Date(_gen.exp).toLocaleDateString('fr-FR')}`,
-    qte:_gen.nbMois, pu:Math.round(_gen.montant/_gen.nbMois), total:_gen.montant
-  });
-
-  const html=`<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8">
-<title>Facture ${numFact}</title>
-<style>
-@page{margin:14mm 14mm;size:A4}
-*{box-sizing:border-box;margin:0;padding:0}
-body{font-family:Arial,sans-serif;font-size:11px;color:#111;background:#fff}
-.pg{padding:0;max-width:780px;margin:0 auto}
-/* En-tête fournisseur */
-.hdr{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:3px solid #0F2544}
-.logo-bloc h1{font-size:24px;font-weight:900;color:#0F2544;letter-spacing:-.5px}
-.logo-bloc .tag{font-size:11px;color:#6B7280;margin-top:2px}
-.fournisseur{text-align:right;font-size:11px;color:#374151;line-height:1.8}
-.fournisseur strong{color:#0F2544}
-/* Titre facture */
-.fact-title{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}
-.fact-title h2{font-size:28px;font-weight:900;color:#0F2544;text-transform:uppercase;letter-spacing:1px}
-.fact-meta{text-align:right;font-size:11px;line-height:1.8;color:#374151}
-.fact-meta strong{color:#0F2544}
-/* Client */
-.client-bloc{background:#F8F9FC;border:1px solid #E5E7EB;border-radius:8px;padding:14px 18px;margin-bottom:20px}
-.client-bloc .cl-title{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#6B7280;margin-bottom:6px;font-weight:700}
-.client-bloc .cl-nom{font-size:16px;font-weight:800;color:#0F2544;margin-bottom:4px}
-.client-bloc .cl-info{font-size:11px;color:#6B7280;line-height:1.8}
-/* Tableau */
-table{width:100%;border-collapse:collapse;margin-bottom:16px}
-thead th{background:#0F2544;color:#fff;padding:9px 12px;text-align:left;font-size:11px;font-weight:700}
-tbody tr:nth-child(even){background:#F8F9FC}
-tbody td{padding:10px 12px;border-bottom:1px solid #E5E7EB;vertical-align:top}
-.r{text-align:right}
-.detail-sub{font-size:10px;color:#6B7280;margin-top:2px}
-/* Totaux */
-.totaux{margin-left:auto;width:280px}
-.tot-row{display:flex;justify-content:space-between;padding:6px 0;font-size:12px;color:#374151;border-bottom:1px solid #F0F0F0}
-.tot-row.main{font-size:15px;font-weight:800;color:#0F2544;padding:10px 0;border-top:2px solid #0F2544;border-bottom:none;margin-top:4px}
-.tot-row .val{font-family:monospace;font-weight:600}
-.remise-row{color:#DC2626}
-/* Licence */
-.licence-bloc{background:linear-gradient(135deg,#0F2544,#1B3A6B);border-radius:10px;padding:16px 20px;margin:16px 0;color:#fff}
-.licence-bloc .lb-title{font-size:11px;opacity:.7;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px}
-.licence-bloc .lb-key{font-family:monospace;font-size:16px;font-weight:800;letter-spacing:2px;color:#F4B942;background:rgba(255,255,255,.08);padding:8px 14px;border-radius:6px;display:inline-block;margin-bottom:8px}
-.licence-bloc .lb-info{font-size:11px;opacity:.75;line-height:1.8}
-/* Modules */
-.modules-bloc{background:#F0FDF4;border:1px solid #BBF7D0;border-radius:8px;padding:12px 16px;margin-bottom:16px}
-.modules-bloc .mt{font-size:11px;font-weight:700;color:#166534;margin-bottom:6px;text-transform:uppercase;letter-spacing:.06em}
-.modules-bloc .mlist{font-size:11px;color:#14532D;line-height:1.8}
-/* Footer */
-.footer{border-top:2px solid #0F2544;padding-top:12px;display:flex;justify-content:space-between;align-items:flex-start;font-size:10px;color:#6B7280;margin-top:20px}
-.footer .thanks{font-size:13px;font-weight:700;color:#0F2544;margin-bottom:4px}
-.footer .conditions{font-size:10px;color:#9CA3AF;margin-top:6px}
-/* Bouton impression */
-.btn-print{position:fixed;top:14px;right:14px;background:#0F2544;color:#fff;border:none;border-radius:8px;padding:10px 22px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,.2)}
-@media print{.btn-print{display:none}body{-webkit-print-color-adjust:exact;print-color-adjust:exact}}
-</style></head><body>
-<button class="btn-print" onclick="window.print()">🖨️ Imprimer / PDF</button>
-
-<div class="pg">
-  <!-- EN-TÊTE -->
-  <div class="hdr">
-    <div class="logo-bloc">
-      <h1>⚡ KynsDev</h1>
-      <div class="tag">Solutions numériques pour associations · Côte d'Ivoire</div>
-    </div>
-    <div class="fournisseur">
-      <strong>KynsDev</strong><br>
-      📧 kynsinvest@gmail.com<br>
-      📱 +225 07 13 43 58 73<br>
-      WhatsApp : wa.me/2250713435873<br>
-      Abidjan, Côte d'Ivoire
-    </div>
-  </div>
-
-  <!-- TITRE -->
-  <div class="fact-title">
-    <div>
-      <h2>Facture</h2>
-      <div style="font-size:12px;color:#6B7280;margin-top:4px">Reçu de paiement officiel</div>
-    </div>
-    <div class="fact-meta">
-      <strong>N° ${numFact}</strong><br>
-      Date : ${dateStr}<br>
-      Statut : <span style="color:#16A34A;font-weight:700">✅ PAYÉE</span>
-    </div>
-  </div>
-
-  <!-- CLIENT -->
-  <div class="client-bloc">
-    <div class="cl-title">Facturé à</div>
-    <div class="cl-nom">${nomClient}</div>
-    ${sigle!==nomClient?`<div style="font-size:12px;color:#6B7280;margin-bottom:4px">Sigle : ${sigle}</div>`:''}
-    <div class="cl-info">
-      ${contact?`👤 ${contact}<br>`:''}
-      ${tel?`📱 ${tel}<br>`:''}
-      ${email?`📧 ${email}<br>`:''}
-      ${ville?`📍 ${ville}`:''}
-    </div>
-  </div>
-
-  <!-- TABLEAU DES LIGNES -->
-  <table>
-    <thead>
-      <tr>
-        <th style="width:50%">Désignation</th>
-        <th class="r" style="width:10%">Qté</th>
-        <th class="r" style="width:18%">Prix unitaire</th>
-        <th class="r" style="width:22%">Montant (FCFA)</th>
-      </tr>
-    </thead>
-    <tbody>
-      ${lignes.map((l,i)=>`<tr style="background:${i%2===0?'#fff':'#F8F9FC'}">
-        <td>
-          <div style="font-weight:600;color:#0F2544">${l.desc}</div>
-          ${l.detail?`<div class="detail-sub">${l.detail}</div>`:''}
-        </td>
-        <td class="r">${l.qte}</td>
-        <td class="r">${l.pu.toLocaleString('fr-FR')}</td>
-        <td class="r" style="font-weight:700">${l.total.toLocaleString('fr-FR')}</td>
-      </tr>`).join('')}
-    </tbody>
-  </table>
-
-  <!-- TOTAUX -->
-  <div class="totaux">
-    <div class="tot-row"><span>Sous-total</span><span class="val">${(_gen.montant+(_gen.activation||0)).toLocaleString('fr-FR')} FCFA</span></div>
-    ${_gen.remise?`<div class="tot-row remise-row"><span>Remise (${_gen.remiseLabel||''})</span><span class="val">−${_gen.remise.toLocaleString('fr-FR')} FCFA</span></div>`:''}
-    <div class="tot-row main"><span>TOTAL TTC</span><span class="val">${_gen.total.toLocaleString('fr-FR')} FCFA</span></div>
-  </div>
-
-  <!-- BLOC LICENCE -->
-  <div class="licence-bloc">
-    <div class="lb-title">🔑 Clé de licence KynsGestAsso</div>
-    <div class="lb-key">${_gen.key}</div>
-    <div class="lb-info">
-      Mutuelle : ${_gen.nom} &nbsp;·&nbsp;
-      Formule : ${_gen.offre||'—'} &nbsp;·&nbsp;
-      Durée : ${_gen.nbMois} mois &nbsp;·&nbsp;
-      Expiration : ${new Date(_gen.exp).toLocaleDateString('fr-FR')}
-    </div>
-  </div>
-
-  <!-- MODULES -->
-  ${client?.modules?.length?`<div class="modules-bloc">
-    <div class="mt">⚙️ Modules activés</div>
-    <div class="mlist">${modules}</div>
-  </div>`:''}
-
-  <!-- COMMENT ACTIVER -->
-  <div style="background:#FFFBEB;border:1px solid #F59E0B;border-radius:8px;padding:12px 16px;margin-bottom:16px">
-    <div style="font-size:11px;font-weight:700;color:#92400E;margin-bottom:6px">💡 Comment activer votre licence ?</div>
-    <div style="font-size:11px;color:#78350F;line-height:1.8">
-      1. Ouvrir votre application KynsGestAsso<br>
-      2. Tableau de bord → Carte Licence → <strong>Activer / Renouveler</strong><br>
-      3. Coller la clé ci-dessus et valider<br>
-      4. La licence est active pour tous les postes connectés
-    </div>
-  </div>
-
-  <!-- FOOTER -->
-  <div class="footer">
-    <div>
-      <div class="thanks">Merci de votre confiance ! 🙏</div>
-      <div style="font-size:11px;color:#374151">KynsDev — Solutions numériques pour associations</div>
-      <div class="conditions">Cette facture tient lieu de reçu officiel de paiement.</div>
-    </div>
-    <div style="text-align:right">
-      <div style="font-size:10px;color:#9CA3AF">Support : kynsinvest@gmail.com</div>
-      <div style="font-size:10px;color:#9CA3AF">WhatsApp : +225 07 13 43 58 73</div>
-      <div style="font-size:10px;color:#9CA3AF;margin-top:4px">${numFact} · ${dateStr}</div>
-    </div>
-  </div>
-
-</div>
-</body></html>`;
-
-  const win=window.open('','_blank','width=900,height=800');
-  if(win){win.document.write(html);win.document.close();}
-  else{
-    const b=new Blob([html],{type:'text/html'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(b);
-    a.download=`Facture_${numFact}_${sigle}.html`;
-    document.body.appendChild(a);a.click();document.body.removeChild(a);
-  }
-}
 
 function copyKey(){navigator.clipboard.writeText(document.getElementById('r-key').textContent).then(()=>{const e=document.getElementById('r-cp');e.textContent='✅ Clé copiée !';setTimeout(()=>e.textContent='',2000);});}
 function copyWA(){if(!_gen)return;const m=`🔑 Renouvellement KynsGestAsso ✅\nMutuelle : ${_gen.nom}\nExpiration : ${fd(_gen.exp)}\nClé : ${_gen.key}\n➡ App → Tableau de bord → Activer / Renouveler\n\nMerci de votre confiance ! KynsDev`;navigator.clipboard.writeText(m).then(()=>alert('✅ Message copié !'));}
 function saveGen(){
   if(!_gen)return;
-  const today=new Date().toISOString().split('T')[0];
-  const duree=Math.round((new Date(_gen.exp)-new Date())/864e5);
-  const h={id:uid(),clientId:_gen.clientId||null,nom:_gen.nom,cle:_gen.key,date:today,expiration:_gen.exp,duree,nbMois:_gen.nbMois,offre:_gen.offre,abonnement:_gen.net,activation:_gen.activation,remise:_gen.remise,remiseLabel:_gen.remiseLabel,note:_gen.note};
+  const today   = new Date().toISOString().split('T')[0];
+  const duree   = Math.round((new Date(_gen.exp)-new Date())/864e5);
+  const isEssai = document.getElementById('g-essai')?.checked || false;
+  const typeClient = isEssai ? 'essai' : 'payant';
+  const h={id:uid(),clientId:_gen.clientId||null,nom:_gen.nom,cle:_gen.key,date:today,
+    expiration:_gen.exp,duree,nbMois:_gen.nbMois,offre:_gen.offre,
+    abonnement:_gen.net,activation:_gen.activation,
+    remise:_gen.remise,remiseLabel:_gen.remiseLabel,
+    note:_gen.note, type:typeClient};
   db.historique.push(h);
-  if(_gen.clientId){const i=db.clients.findIndex(x=>x.id===_gen.clientId);if(i>=0){db.clients[i].expiration=_gen.exp;db.clients[i].lastKey=_gen.key;}}
-  else{const nc={id:uid(),nom:_gen.nom,type:'payant',expiration:_gen.exp,lastKey:_gen.key,createdAt:today,contact:'',tel:'',email:'',ville:'',note:_gen.note||''};db.clients.push(nc);h.clientId=nc.id;}
+  if(_gen.clientId){
+    const i=db.clients.findIndex(x=>x.id===_gen.clientId);
+    if(i>=0){
+      db.clients[i].expiration = _gen.exp;
+      db.clients[i].lastKey    = _gen.key;
+      // Mettre à jour le type si passage d'essai à payant ou vice versa
+      db.clients[i].type = typeClient;
+      if(_gen.offre)  db.clients[i].formule = _gen.offre;
+      if(_gen.nbMois) db.clients[i].nbMois  = _gen.nbMois;
+    }
+  } else {
+    const nc={id:uid(),nom:_gen.nom,type:typeClient,
+      expiration:_gen.exp,lastKey:_gen.key,createdAt:today,
+      formule:_gen.offre||'',nbMois:_gen.nbMois||0,
+      contact:'',tel:'',email:'',ville:'',note:_gen.note||''};
+    db.clients.push(nc);
+    h.clientId=nc.id;
+  }
   saveDB();
   saveHistoSheets(h);
   const newCl=db.clients.find(x=>x.id===h.clientId);
@@ -2710,22 +2539,6 @@ else {
 }
 rDash();
 
-async function submitChangePwd(){
-  const o=document.getElementById('pwd-old').value;
-  const n=document.getElementById('pwd-new').value;
-  const conf=document.getElementById('pwd-conf').value;
-  const msg=document.getElementById('pwd-msg');
-  if(n!==conf){msg.style.color='var(--red)';msg.textContent='❌ Les nouveaux codes ne correspondent pas.';return;}
-  const ok=await changePassword(o,n);
-  if(ok){
-    msg.style.color='var(--green)';
-    msg.textContent='✅ Code modifié — il sera demandé à la prochaine ouverture.';
-    ['pwd-old','pwd-new','pwd-conf'].forEach(id=>document.getElementById(id).value='');
-  } else {
-    msg.style.color='var(--red)';
-    msg.textContent='❌ Ancien code incorrect.';
-  }
-}
 
 function toggleConfigMenu(){
   const el=document.getElementById('sbi-config');
