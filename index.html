@@ -1072,12 +1072,20 @@ function editCl(id){
   document.getElementById('mc-t').value=c.tel||'';document.getElementById('mc-e').value=c.email||'';
   document.getElementById('mc-v').value=c.ville||'';document.getElementById('mc-o').value=c.note||'';
   document.getElementById('mc-a').value=c.activationPaye||'';
+  // Restaurer les URLs et package (sinon effacés à l'enregistrement !)
+  if(document.getElementById('mc-pkg')) document.getElementById('mc-pkg').value=c.packageApk||'';
+  if(document.getElementById('mc-url')) document.getElementById('mc-url').value=c.urlGitHub||'';
+  if(document.getElementById('mc-gas')) document.getElementById('mc-gas').value=c.urlGas||'';
   if(document.getElementById('mc-offre-hidden'))document.getElementById('mc-offre-hidden').value=c.formule||'';
   // Restaurer la tranche
   if(c.tranche){
     const r=document.querySelector(`input[name="mc-tranche"][value="${c.tranche}"]`);
     if(r){r.checked=true;onTrancheChange(c.tranche);}
   }
+  // Restaurer les modules DE CE CLIENT (sinon état du client précédent conservé !)
+  document.querySelectorAll('.mc-module-chk').forEach(el=>{
+    el.checked = !!(c.modules && c.modules.includes(el.value));
+  });
   document.getElementById('mc-err').style.display='none';
   const mcType=document.getElementById('mc-type');if(mcType)mcType.value=c.type||'payant';
   OM('m-cl');
