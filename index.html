@@ -732,38 +732,56 @@ const MODULES_TOUJOURS_ACTIFS = [
 
 async function applyModulesToClient(client){
   if(!client?.urlGas){
-    showToast('⚠️ URL GAS manquante pour '+client.nom+' — impossible d\'appliquer les modules.','warn');
+    showToast('⚠️ URL GAS manquante pour '+client.nom+' — renseignez l\'URL GAS dans sa fiche.','warn');
     return;
   }
 
-  // Construire la config modules : activer les cochés, désactiver les autres
+  // Vérifier que chaque client a bien une URL GAS DIFFÉRENTE
+  const autresAvecMemeUrl = db.clients.filter(c=>
+    c.id !== client.id && c.urlGas && c.urlGas === client.urlGas
+  );
+  if(autresAvecMemeUrl.length > 0){
+    showToast('⚠️ ATTENTION : '+autresAvecMemeUrl.length+' autre(s) client(s) ont la même URL GAS ! Vérifiez les fiches.','warn');
+    const ok = confirm('⚠️ '+autresAvecMemeUrl.length+' autre(s) client(s) partagent la même URL GAS que '+client.nom+'.\nNoms : '+autresAvecMemeUrl.map(c=>c.nom).join(', ')+'\n\nCela modifiera leur app aussi. Continuer quand même ?');
+    if(!ok) return;
+  }
+
+  // Construire la config modules
   const modulesConfig = {};
   Object.entries(MODULE_PAGE_MAP).forEach(([label, pageId])=>{
-    const actif = client.modules && client.modules.includes(label);
-    modulesConfig[pageId] = actif; // true = visible, false = masqué
+    modulesConfig[pageId] = !!(client.modules && client.modules.includes(label));
   });
-  // Les modules de base sont toujours true
   MODULES_TOUJOURS_ACTIFS.forEach(id=>{ modulesConfig[id] = true; });
 
-  showToast('⏳ Application des modules vers '+client.nom+'…','info');
+  showToast('⏳ Envoi de la config modules vers '+client.nom+'… (URL: '+client.urlGas.substring(0,40)+'…)','info');
 
   try{
-    const resp = await fetch(client.urlGas, {
+    await fetch(client.urlGas, {
       method: 'POST',
       mode: 'no-cors',
       headers: {'Content-Type':'text/plain;charset=utf-8'},
       body: JSON.stringify({
         action: 'saveModulesConfig',
-        payload: {
-          modulesConfig,
-          source: 'kynsdev'  // ← identifie que c'est KynsDev qui envoie (plafond)
-        },
+        payload: { modulesConfig, source: 'kynsdev' },
         _token: ''
       }),
       redirect: 'follow'
     });
-    showToast('✅ Modules appliqués pour '+client.nom+' — rechargement requis côté client.','ok');
-    // Logger dans l'historique CRM
+
+    // Vérifier que le GAS a bien reçu via un GET JSONP
+    setTimeout(async()=>{
+      try{
+        const verif = await fetch(client.urlGas+'?action=ping&cb=_verifModules_'+Date.now(), {
+          method:'GET', mode:'cors', redirect:'follow'
+        });
+        if(verif.ok) showToast('✅ Config envoyée à '+client.nom+' — le client doit recharger son app.','ok');
+        else showToast('⚠️ Config envoyée à '+client.nom+' — vérifiez que le GAS est bien déployé.','warn');
+      }catch(e){
+        showToast('✅ Config envoyée à '+client.nom+' (no-cors — vérification impossible). Le client doit recharger.','ok');
+      }
+    }, 2000);
+
+    // Logger
     const h={id:uid(),clientId:client.id,date:new Date().toISOString().split('T')[0],
       type:'config',note:'Modules appliqués : '+(client.modules||[]).join(', ')||'Standards'};
     db.historique.push(h);
