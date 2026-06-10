@@ -711,7 +711,7 @@ let tarifs=lsg(TK)||dTar();
 function lsg(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
 function lss(k,v){localStorage.setItem(k,JSON.stringify(v));}
 function saveDB(){lss(DBK,db);}
-async // ── Correspondance modules CRM → IDs pages de l'app ────────────────────
+// ── Correspondance modules CRM → IDs pages de l'app ────────────────────
 const MODULE_PAGE_MAP = {
   'Prêts membres':        'page-prets',
   'Gestion Projets':      'page-projets',
