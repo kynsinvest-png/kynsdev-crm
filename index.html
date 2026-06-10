@@ -387,7 +387,7 @@ tfoot tr td{padding:10px 12px}
     <button class="btn bgh bsm" onclick="exportH()">⬇ CSV</button></div>
   <div class="card" style="padding:0;overflow:hidden">
     <div class="tw" style="border:none"><table>
-      <thead><tr><th>Date</th><th>Mutuelle</th><th>Clé de licence</th><th>Remise</th><th>Expiration</th><th>Durée</th><th>Formule</th><th>Modules</th><th>Abonnement</th><th>Activation</th><th>Total</th></tr></thead>
+      <thead><tr><th>Date</th><th>Mutuelle</th><th>Clé de licence</th><th>Remise</th><th>Expiration</th><th>Durée</th><th>Formule</th><th>Abonnement</th><th>Activation</th><th>Total</th><th>Note</th><th>Actions</th></tr></thead>
       <tbody id="h-tb"></tbody></table></div></div>
 </div>
 
@@ -699,13 +699,95 @@ async function submitChangePwd(){
 const DBK='kynsdev_crm_v3',TK='kynsdev_tarifs_v3',MKEY='MUTUELLECI_VENDOR_2026';
 
 // ── URL GAS embarquée — remplacer une seule fois après déploiement GAS
-const EMBEDDED_GAS_URL = 'https://script.google.com/macros/s/AKfycbzUL1tv00Ga2ZaiVXBvgaKRmPSEz8ygVvZxEmFpMfEXYIXumje90iEJItDmf91GJiib/exec'; // ← REMPLACER
+const EMBEDDED_GAS_URL = 'VOTRE_URL_GAS_ICI'; // ← REMPLACER
 
 let db=lsg(DBK)||{clients:[],historique:[]};
 let tarifs=lsg(TK)||dTar();
 function lsg(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
 function lss(k,v){localStorage.setItem(k,JSON.stringify(v));}
 function saveDB(){lss(DBK,db);}
+async // ── Correspondance modules CRM → IDs pages de l'app ────────────────────
+const MODULE_PAGE_MAP = {
+  'Prêts membres':        'page-prets',
+  'Gestion Projets':      'page-projets',
+  'Comptes & Trésorerie': 'page-comptes',
+  'Rapport Bilan AG':     'page-bag',
+  'Archivage':            'page-historique',
+  'SMS Groupé':           'page-sms',
+  'Patrimoine':           'page-patrimoine',
+  'Config modules':       'page-config-modules',
+};
+
+// Modules toujours visibles (jamais masqués)
+const MODULES_TOUJOURS_ACTIFS = [
+  'page-dashboard','page-membres','page-cotisations','page-cotis-exc',
+  'page-assistances','page-dons','page-depenses','page-admins',
+  'page-rapports','page-docs-admin','page-profil','page-config',
+];
+
+async function applyModulesToClient(client){
+  if(!client?.urlGas){
+    showToast('⚠️ URL GAS manquante pour '+client.nom+' — impossible d\'appliquer les modules.','warn');
+    return;
+  }
+
+  // Construire la config modules : activer les cochés, désactiver les autres
+  const modulesConfig = {};
+  Object.entries(MODULE_PAGE_MAP).forEach(([label, pageId])=>{
+    const actif = client.modules && client.modules.includes(label);
+    modulesConfig[pageId] = actif; // true = visible, false = masqué
+  });
+  // Les modules de base sont toujours true
+  MODULES_TOUJOURS_ACTIFS.forEach(id=>{ modulesConfig[id] = true; });
+
+  showToast('⏳ Application des modules vers '+client.nom+'…','info');
+
+  try{
+    const resp = await fetch(client.urlGas, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: {'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify({
+        action: 'saveModulesConfig',
+        payload: {
+          modulesConfig,
+          source: 'kynsdev'  // ← identifie que c'est KynsDev qui envoie (plafond)
+        },
+        _token: ''
+      }),
+      redirect: 'follow'
+    });
+    showToast('✅ Modules appliqués pour '+client.nom+' — rechargement requis côté client.','ok');
+    // Logger dans l'historique CRM
+    const h={id:uid(),clientId:client.id,date:new Date().toISOString().split('T')[0],
+      type:'config',note:'Modules appliqués : '+(client.modules||[]).join(', ')||'Standards'};
+    db.historique.push(h);
+    saveDB();
+  }catch(e){
+    showToast('❌ Erreur envoi modules : '+e.message,'err');
+  }
+}
+
+function showToast(msg, type='info'){
+  let el = document.getElementById('crm-toast');
+  if(!el){
+    el = document.createElement('div');
+    el.id = 'crm-toast';
+    el.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;max-width:340px;box-shadow:0 4px 16px rgba(0,0,0,0.15);transition:opacity 0.3s';
+    document.body.appendChild(el);
+  }
+  const colors = {ok:'#16A34A',warn:'#D97706',err:'#DC2626',info:'#1D4ED8'};
+  const bgs    = {ok:'#F0FDF4',warn:'#FFFBEB',err:'#FEF2F2',info:'#EFF6FF'};
+  el.style.background = bgs[type]||bgs.info;
+  el.style.color      = colors[type]||colors.info;
+  el.style.border     = '1.5px solid '+(colors[type]||colors.info);
+  el.textContent = msg;
+  el.style.opacity = '1';
+  el.style.display = 'block';
+  clearTimeout(el._t);
+  el._t = setTimeout(()=>{ el.style.opacity='0'; setTimeout(()=>el.style.display='none',300); }, 5000);
+}
+
 async function saveClientSheets(client){
   if(!isOnline()) return;
   setSyncStatus('loading','Sauvegarde…');
@@ -970,7 +1052,7 @@ function editCl(id){
   document.getElementById('mc-err').style.display='none';OM('m-cl');
 }
 function updT(){ /* type de compte supprimé */ }
-function saveCl(){
+async function saveCl(){
   const nom=document.getElementById('mc-n').value.trim().toUpperCase();
   const desc=document.getElementById('mc-desc').value.trim();
   const errEl=document.getElementById('mc-err');
@@ -1019,6 +1101,8 @@ function saveCl(){
   const clId=_eid||db.clients[db.clients.length-1]?.id;
   const clObj=db.clients.find(x=>x.id===clId);
   if(clObj) saveClientSheets(clObj);
+  // Appliquer automatiquement les modules vers l'app GAS du client
+  if(clObj?.urlGas) applyModulesToClient(clObj);
   CM('m-cl');rClients();
 }
 function detail(id){
@@ -1050,8 +1134,12 @@ function detail(id){
       <td>${fm(x.abonnement)}</td><td>${x.activation?fm(x.activation):'—'}</td>
       <td style="font-weight:700;color:var(--navy)">${fm((Number(x.abonnement)||0)+(Number(x.activation)||0))}</td></tr>`).join('')}
     </tbody></table></div>`:'<p style="color:var(--g400);font-size:12px">Aucun historique</p>'}
-    <div style="display:flex;gap:8px;margin-top:14px">
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
       <button class="btn bgold" onclick="renew('${c.id}');CM('m-dt')" style="flex:1;justify-content:center">🔑 Renouveler</button>
+      ${c.urlGas ? `<button class="btn" onclick="applyModulesToClient(db.clients.find(x=>x.id==='${c.id}'))"
+        style="flex:1;justify-content:center;background:#0F766E;color:#fff;border-color:#0F766E">
+        ⚙️ Appliquer les modules
+      </button>` : ''}
       <button class="btn bgh" onclick="CM('m-dt')" style="flex:1;justify-content:center">Fermer</button>
     </div>`;
   OM('m-dt');
@@ -2087,8 +2175,8 @@ function rHist(){
   const h=[...db.historique].sort((a,b)=>b.date.localeCompare(a.date));
   document.getElementById('h-cnt').textContent=`${h.length} licence(s)`;
   const tb=document.getElementById('h-tb');
-  if(!h.length){tb.innerHTML='<tr><td colspan="9" style="text-align:center;color:var(--g400);padding:22px">Aucun historique</td></tr>';return;}
-  tb.innerHTML=h.map(x=>`<tr>
+  if(!h.length){tb.innerHTML='<tr><td colspan="12" style="text-align:center;color:var(--g400);padding:22px">Aucun historique</td></tr>';return;}
+  tb.innerHTML=h.map((x,i)=>`<tr>
     <td style="font-size:11px">${fd(x.date)}</td>
     <td style="font-weight:600;color:var(--navy)">${x.nom}</td>
     <td><span style="font-family:var(--mono);font-size:10px;background:var(--g100);padding:2px 6px;border-radius:4px;color:var(--navy);cursor:pointer" onclick="navigator.clipboard.writeText('${x.cle||''}').then(()=>alert('✅ Clé copiée !'))" title="Cliquer pour copier">${x.cle?x.cle.substring(0,12)+'…':'—'}</span></td>
@@ -2099,7 +2187,167 @@ function rHist(){
     <td>${fm(x.abonnement)}</td>
     <td style="color:var(--purple)">${x.activation?fm(x.activation):'—'}</td>
     <td style="font-weight:700;color:var(--green)">${fm((Number(x.abonnement)||0)+(Number(x.activation)||0))}</td>
-    <td style="font-size:11px;color:var(--g400)">${x.note||'—'}</td></tr>`).join('');
+    <td style="font-size:11px;color:var(--g400)">${x.note||'—'}</td>
+    <td>
+      <div style="display:flex;gap:4px">
+        <button onclick="genererFacture(${i})" title="Voir & télécharger la facture"
+          style="padding:4px 8px;background:#1D4ED8;color:#fff;border:none;border-radius:5px;font-size:11px;cursor:pointer;white-space:nowrap">
+          🧾 Facture
+        </button>
+        <button onclick="partagerFactureWA(${i})" title="Partager sur WhatsApp"
+          style="padding:4px 8px;background:#16A34A;color:#fff;border:none;border-radius:5px;font-size:11px;cursor:pointer;white-space:nowrap">
+          💬 WA
+        </button>
+      </div>
+    </td>
+  </tr>`).join('');
+}
+
+// ── GÉNÉRATION FACTURE PDF ──────────────────────────────────────────────
+function genererFacture(idx){
+  const h=[...db.historique].sort((a,b)=>b.date.localeCompare(a.date));
+  const x = h[idx];
+  if(!x){ alert('Historique introuvable'); return; }
+  const client = db.clients.find(c=>c.nom===x.nom||c.id===x.clientId)||{};
+  const total  = (Number(x.abonnement)||0)+(Number(x.activation)||0);
+  const num    = 'FAC-'+x.date.replace(/-/g,'')+(x.cle?'-'+x.cle.substring(0,4).toUpperCase():'');
+
+  const html = `<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<title>Facture ${num}</title>
+<style>
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{font-family:Arial,sans-serif;font-size:13px;color:#111;padding:32px;max-width:700px;margin:auto}
+  .header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:28px;padding-bottom:16px;border-bottom:3px solid #0F2544}
+  .logo{font-size:22px;font-weight:900;color:#0F2544;letter-spacing:1px}
+  .logo span{color:#F59E0B}
+  .tag{font-size:11px;color:#6B7280;margin-top:2px}
+  .facture-num{text-align:right}
+  .facture-num h1{font-size:20px;font-weight:800;color:#0F2544}
+  .facture-num .date{font-size:12px;color:#6B7280;margin-top:4px}
+  .parties{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:24px}
+  .partie h3{font-size:11px;text-transform:uppercase;color:#6B7280;font-weight:700;margin-bottom:8px;letter-spacing:.5px}
+  .partie p{font-size:13px;line-height:1.7;color:#111}
+  table{width:100%;border-collapse:collapse;margin-bottom:20px}
+  thead th{background:#0F2544;color:#fff;padding:9px 12px;font-size:12px;text-align:left}
+  tbody td{padding:9px 12px;border-bottom:1px solid #E5E7EB;font-size:12px}
+  .total-bloc{text-align:right}
+  .total-ligne{display:flex;justify-content:flex-end;gap:32px;font-size:13px;padding:3px 0}
+  .total-final{font-size:16px;font-weight:900;color:#0F2544;border-top:2px solid #0F2544;padding-top:8px;margin-top:8px}
+  .cle-box{margin-top:16px;padding:12px 16px;background:#EFF6FF;border:1.5px solid #93C5FD;border-radius:8px}
+  .cle-box h4{font-size:11px;color:#1D4ED8;font-weight:700;margin-bottom:6px}
+  .cle-val{font-family:monospace;font-size:14px;font-weight:700;color:#0F2544;letter-spacing:2px;word-break:break-all}
+  .footer{margin-top:32px;padding-top:16px;border-top:1px solid #E5E7EB;text-align:center;font-size:11px;color:#9CA3AF}
+  .badge{display:inline-block;background:#D1FAE5;color:#065F46;padding:2px 8px;border-radius:12px;font-size:11px;font-weight:700}
+  @media print{body{padding:0} .no-print{display:none}}
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="logo">Kyns<span>Dev</span></div>
+      <div class="tag">Solutions numériques pour associations · Côte d'Ivoire</div>
+      <div style="font-size:11px;color:#6B7280;margin-top:4px">📱 +225 07 13 43 58 73 · kynsinvest@gmail.com</div>
+    </div>
+    <div class="facture-num">
+      <h1>FACTURE</h1>
+      <div style="font-family:monospace;color:#1D4ED8;font-weight:700">${num}</div>
+      <div class="date">Date : ${fd(x.date)}</div>
+      <span class="badge">✅ PAYÉE</span>
+    </div>
+  </div>
+
+  <div class="parties">
+    <div class="partie">
+      <h3>Émetteur</h3>
+      <p><strong>KynsDev</strong><br>Abidjan, Côte d'Ivoire<br>kynsinvest@gmail.com<br>+225 07 13 43 58 73</p>
+    </div>
+    <div class="partie">
+      <h3>Client</h3>
+      <p><strong>${x.nom}</strong><br>${client.description||''}<br>${client.contact||''}<br>${client.tel||''}<br>${client.ville||''}</p>
+    </div>
+  </div>
+
+  <table>
+    <thead><tr><th>Désignation</th><th>Formule</th><th>Durée</th><th>Montant</th></tr></thead>
+    <tbody>
+      ${x.activation?`<tr><td>Mise en service & Configuration</td><td>—</td><td>Unique</td><td style="text-align:right;font-weight:600">${fm(x.activation)} FCFA</td></tr>`:''}
+      ${x.abonnement?`<tr><td>Abonnement logiciel KynsGestAsso</td><td>${x.offre||'—'}</td><td>${x.nbMois?x.nbMois+' mois':x.duree?x.duree+' jours':'—'}</td><td style="text-align:right;font-weight:600">${fm(x.abonnement)} FCFA</td></tr>`:''}
+      ${x.remise?`<tr><td colspan="3" style="color:#D97706">Remise appliquée</td><td style="text-align:right;color:#D97706">- ${fm(x.remise)} FCFA</td></tr>`:''}
+    </tbody>
+  </table>
+
+  <div class="total-bloc">
+    ${x.remise?`<div class="total-ligne"><span>Sous-total</span><span>${fm((Number(x.abonnement)||0)+(Number(x.activation)||0)+(Number(x.remise)||0))} FCFA</span></div>
+    <div class="total-ligne"><span>Remise</span><span>- ${fm(x.remise)} FCFA</span></div>`:''}
+    <div class="total-ligne total-final"><span>TOTAL TTC</span><span>${fm(total)} FCFA</span></div>
+  </div>
+
+  ${x.cle?`<div class="cle-box">
+    <h4>🔑 CLÉ DE LICENCE</h4>
+    <div class="cle-val">${x.cle}</div>
+    <div style="font-size:11px;color:#1D4ED8;margin-top:4px">Expire le : ${fd(x.expiration)}</div>
+  </div>`:''}
+
+  <div style="margin-top:16px;padding:10px 14px;background:#FEF9C3;border-radius:8px;font-size:11px;color:#92400E">
+    ⚠️ Cette licence est strictement personnelle et liée à l'association <strong>${x.nom}</strong>. Toute reproduction ou cession est interdite.
+  </div>
+
+  <div class="footer">
+    KynsDev · Solutions numériques pour mutuelles et associations en Côte d'Ivoire<br>
+    Merci de votre confiance 🙏
+  </div>
+
+  <div class="no-print" style="margin-top:24px;display:flex;gap:10px;justify-content:center">
+    <button onclick="window.print()" style="padding:10px 24px;background:#0F2544;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">🖨️ Imprimer / Télécharger PDF</button>
+    <button onclick="window.close()" style="padding:10px 24px;background:#E5E7EB;color:#374151;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">Fermer</button>
+  </div>
+</body>
+</html>`;
+
+  const w = window.open('','_blank','width=780,height=900');
+  w.document.write(html);
+  w.document.close();
+  w.focus();
+}
+
+// ── PARTAGE WHATSAPP ────────────────────────────────────────────────────
+function partagerFactureWA(idx){
+  const h=[...db.historique].sort((a,b)=>b.date.localeCompare(a.date));
+  const x = h[idx];
+  if(!x){ alert('Historique introuvable'); return; }
+  const client = db.clients.find(c=>c.nom===x.nom||c.id===x.clientId)||{};
+  const total  = (Number(x.abonnement)||0)+(Number(x.activation)||0);
+  const num    = 'FAC-'+x.date.replace(/-/g,'')+(x.cle?'-'+x.cle.substring(0,4).toUpperCase():'');
+
+  const msg = `🧾 *FACTURE KYNSDEV*
+━━━━━━━━━━━━━━━━━━━
+📋 N° *${num}*
+📅 Date : ${fd(x.date)}
+━━━━━━━━━━━━━━━━━━━
+🏛️ *${x.nom}*
+${client.contact?'👤 '+client.contact:''}
+━━━━━━━━━━━━━━━━━━━
+${x.activation?'⚙️ Mise en service : '+fm(x.activation)+' FCFA\n':''}${x.abonnement?'📦 Abonnement ('+x.offre+')'+(x.nbMois?' — '+x.nbMois+' mois':'')+' : '+fm(x.abonnement)+' FCFA\n':''}${x.remise?'🎁 Remise : - '+fm(x.remise)+' FCFA\n':''}━━━━━━━━━━━━━━━━━━━
+💰 *TOTAL : ${fm(total)} FCFA*
+${x.cle?'\n🔑 Clé de licence :\n*'+x.cle+'*':''
+}${x.expiration?'\n⏳ Expire le : '+fd(x.expiration):''}
+━━━━━━━━━━━━━━━━━━━
+✅ Facture acquittée
+Merci de votre confiance 🙏
+_KynsDev · +225 07 13 43 58 73_`;
+
+  // Récupérer le numéro WhatsApp du client
+  const tel = (client.tel||'').replace(/\D/g,'').replace(/^0/,'225');
+  const telFormatted = tel.startsWith('225') ? tel : '225'+tel;
+
+  const url = tel
+    ? `https://wa.me/${telFormatted}?text=${encodeURIComponent(msg)}`
+    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+
+  window.open(url, '_blank');
 }
 function exportH(){
   const h=db.historique;if(!h.length){alert('Aucun historique.');return;}
@@ -2130,7 +2378,7 @@ function initConfigPage(){
       info.innerHTML='✅ URL embarquée active — aucune configuration manuelle requise sur les autres postes';
       info.className='ae ae-s'; info.style.display='block';
     } else {
-      info.innerHTML='ℹ️ Remplacez <strong>VOTRE_URL_GAS_ICI</strong> dans le fichier HTML pour éviter toute configuration sur les autres postes.';
+      info.innerHTML='ℹ️ Remplacez <strong>https://script.google.com/macros/s/AKfycbzUL1tv00Ga2ZaiVXBvgaKRmPSEz8ygVvZxEmFpMfEXYIXumje90iEJItDmf91GJiib/exec</strong> dans le fichier HTML pour éviter toute configuration sur les autres postes.';
       info.className='ae ae-i'; info.style.display='block';
     }
   }
