@@ -5,27 +5,16 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <title>KynsDev — Activer ma licence</title>
 <style>
-  :root{
-    --navy:#0F2544;--blue:#1D4ED8;--green:#16A34A;--gold:#F59E0B;
-    --purple:#7C3AED;--red:#DC2626;--gray:#F9FAFB;--border:#E5E7EB;
-  }
+  :root{--navy:#0F2544;--blue:#1D4ED8;--green:#16A34A;--gold:#F59E0B;--purple:#7C3AED;--red:#DC2626;--border:#E5E7EB}
   *{box-sizing:border-box;margin:0;padding:0}
   body{font-family:'Segoe UI',system-ui,sans-serif;background:#F0F4FF;min-height:100vh}
-
-  /* HEADER */
   .header{background:var(--navy);padding:16px 24px;display:flex;align-items:center;gap:12px}
   .logo{font-size:22px;font-weight:900;color:#fff;letter-spacing:1px}
   .logo span{color:var(--gold)}
   .tagline{font-size:12px;color:rgba(255,255,255,0.6);margin-top:2px}
-
-  /* LAYOUT */
   .container{max-width:520px;margin:32px auto;padding:0 16px 60px}
-
-  /* CARDS */
   .card{background:#fff;border-radius:16px;padding:24px;box-shadow:0 2px 16px rgba(0,0,0,0.07);margin-bottom:20px}
   .card-title{font-size:15px;font-weight:700;color:var(--navy);margin-bottom:16px;display:flex;align-items:center;gap:8px}
-
-  /* OFFRES */
   .offres{display:flex;flex-direction:column;gap:10px}
   .offre-card{border:2px solid var(--border);border-radius:12px;padding:14px 16px;cursor:pointer;transition:.15s;position:relative}
   .offre-card.selected{border-color:var(--blue);background:#EFF6FF}
@@ -34,50 +23,38 @@
   .offre-nom{font-weight:700;font-size:14px;color:var(--navy)}
   .offre-prix{font-weight:800;font-size:16px;color:var(--blue)}
   .offre-desc{font-size:12px;color:#6B7280;margin-top:4px}
-  .offre-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#DCFCE7;color:#166534;margin-left:8px}
-  .offre-badge.pop{background:#FEF9C3;color:#92400E}
-
-  /* FORM */
+  .offre-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:#FEF9C3;color:#92400E;margin-left:8px}
   .field{margin-bottom:14px}
   .field label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:5px}
   .field input,.field select{width:100%;padding:10px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:14px;outline:none;transition:.15s}
   .field input:focus,.field select:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(29,78,216,0.1)}
   .field .hint{font-size:11px;color:#9CA3AF;margin-top:4px}
-
-  /* RECAP */
   .recap{background:linear-gradient(135deg,#0F2544,#1E3A5F);border-radius:12px;padding:16px;color:#fff;margin-bottom:16px;display:none}
   .recap-ligne{display:flex;justify-content:space-between;font-size:13px;padding:3px 0;opacity:.85}
-  .recap-total{display:flex;justify-content:space-between;font-size:17px;font-weight:800;padding-top:10px;margin-top:8px;border-top:1px solid rgba(255,255,255,.2)}
-
-  /* BOUTON PAYER */
-  .btn-payer{width:100%;padding:16px;background:linear-gradient(135deg,#16A34A,#15803D);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:.15s;letter-spacing:.3px}
+  .recap-sep{border-top:1px solid rgba(255,255,255,.15);margin:8px 0}
+  .recap-total{display:flex;justify-content:space-between;font-size:17px;font-weight:800;padding-top:8px}
+  .btn-payer{width:100%;padding:16px;background:linear-gradient(135deg,#16A34A,#15803D);color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:.15s}
   .btn-payer:hover{transform:translateY(-1px);box-shadow:0 4px 20px rgba(22,163,74,.3)}
   .btn-payer:disabled{background:#D1D5DB;cursor:not-allowed;transform:none;box-shadow:none}
-
-  /* MOYENS DE PAIEMENT */
   .moyens{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin-top:12px}
   .moyen-badge{padding:4px 10px;background:#F3F4F6;border-radius:20px;font-size:11px;font-weight:600;color:#374151}
-
-  /* LOADER */
   .loader{display:none;text-align:center;padding:32px}
   .spinner{width:40px;height:40px;border:4px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 1s linear infinite;margin:0 auto 16px}
   @keyframes spin{to{transform:rotate(360deg)}}
-
-  /* ERREUR */
   .err-box{background:#FEF2F2;border:1.5px solid #FECACA;border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);display:none;margin-bottom:12px}
-
-  /* SECURE */
   .secure-note{text-align:center;font-size:11px;color:#9CA3AF;display:flex;align-items:center;justify-content:center;gap:5px;margin-top:12px}
-
-  /* MOIS SELECTOR */
   .mois-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
-  .mois-btn{border:2px solid var(--border);border-radius:8px;padding:8px 4px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;transition:.15s}
+  .mois-btn{border:2px solid var(--border);border-radius:8px;padding:10px 4px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;transition:.15s}
   .mois-btn.active{border-color:var(--blue);background:#EFF6FF;color:var(--blue)}
-  .mois-btn small{display:block;font-size:10px;font-weight:400;color:#6B7280}
+  /* Activation */
+  .activ-toggle{display:flex;gap:10px;margin-top:8px}
+  .activ-btn{flex:1;padding:12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;text-align:center;background:#fff;transition:.15s}
+  .activ-btn.selected-oui{border-color:var(--blue);background:#EFF6FF;color:var(--blue)}
+  .activ-btn.selected-non{border-color:var(--green);background:#F0FDF4;color:var(--green)}
+  .activ-info{background:#FEF9C3;border:1.5px solid #FDE68A;border-radius:10px;padding:12px;font-size:12px;color:#92400E;margin-top:10px;display:none}
 </style>
 </head>
 <body>
-
 <div class="header">
   <div>
     <div class="logo">Kyns<span>Dev</span></div>
@@ -86,35 +63,53 @@
 </div>
 
 <div class="container">
-
-  <!-- TITRE -->
   <div style="text-align:center;margin-bottom:24px">
     <div style="font-size:24px;font-weight:900;color:var(--navy)">Activez votre licence</div>
     <div style="font-size:14px;color:#6B7280;margin-top:6px">KynsGestAsso — Gestion de mutuelle & association</div>
   </div>
 
-  <!-- ETAPE 1 : OFFRE -->
+  <!-- ÉTAPE 1 : ACTIVATION (obligatoire) -->
   <div class="card">
+    <div class="card-title">⚙️ Frais de mise en service</div>
+    <p style="font-size:13px;color:#374151;margin-bottom:12px">
+      La mise en service est un <strong>paiement unique de 15 000 FCFA</strong>, valable à vie.
+      Si vous l'avez déjà payé, sélectionnez "Déjà payé".
+    </p>
+    <div class="activ-toggle">
+      <div class="activ-btn" id="btn-activ-oui" onclick="selectActivation(true)">
+        ⚙️ Je dois payer<br><span style="font-size:15px;font-weight:900;color:var(--blue)">15 000 F</span><br>
+        <small style="font-weight:400;color:#6B7280">Première fois</small>
+      </div>
+      <div class="activ-btn" id="btn-activ-non" onclick="selectActivation(false)">
+        ✅ Déjà payé<br><span style="font-size:15px;font-weight:900;color:var(--green)">0 F</span><br>
+        <small style="font-weight:400;color:#6B7280">Renouvellement</small>
+      </div>
+    </div>
+    <div class="activ-info" id="activ-info">
+      ⚠️ La mise en service est <strong>obligatoire</strong> avant tout abonnement.
+      Ce paiement unique couvre la configuration complète de votre espace KynsGestAsso.
+    </div>
+  </div>
+
+  <!-- ÉTAPE 2 : OFFRE -->
+  <div class="card" id="card-offre" style="display:none">
     <div class="card-title">📦 Choisissez votre offre</div>
-    <div class="offres" id="offres-container">
-      <!-- Généré par JS -->
-    </div>
+    <div class="offres" id="offres-container"></div>
   </div>
 
-  <!-- ETAPE 2 : DURÉE -->
-  <div class="card">
+  <!-- ÉTAPE 3 : DURÉE -->
+  <div class="card" id="card-duree" style="display:none">
     <div class="card-title">🗓️ Durée de la licence</div>
-    <div class="mois-grid" id="mois-grid">
-      <!-- Généré par JS -->
-    </div>
+    <div class="mois-grid" id="mois-grid"></div>
   </div>
 
-  <!-- ETAPE 3 : COORDONNÉES -->
-  <div class="card">
+  <!-- ÉTAPE 4 : COORDONNÉES -->
+  <div class="card" id="card-coords" style="display:none">
     <div class="card-title">👤 Vos coordonnées</div>
     <div class="field">
       <label>Nom de votre mutuelle / association *</label>
-      <input type="text" id="f-nom" placeholder="Ex: MUTUELLE SANTA" oninput="majRecap()"/>
+      <input type="text" id="f-nom" placeholder="Ex: MUTUELLE SANTA" oninput="majRecap();verifierActivation(this.value)"/>
+      <div id="activ-status" style="font-size:11px;margin-top:5px;min-height:16px"></div>
     </div>
     <div class="field">
       <label>Nom du responsable *</label>
@@ -133,16 +128,19 @@
 
   <!-- RECAP -->
   <div class="recap" id="recap-box">
-    <div class="recap-ligne"><span>Offre</span><span id="r-offre">—</span></div>
-    <div class="recap-ligne"><span>Durée</span><span id="r-duree">—</span></div>
-    <div class="recap-ligne"><span>Mutuelle</span><span id="r-nom">—</span></div>
+    <div class="recap-ligne" id="r-activ-ligne" style="display:none">
+      <span>⚙️ Mise en service (unique à vie)</span>
+      <span id="r-activ">15 000 F</span>
+    </div>
+    <div class="recap-ligne"><span>📦 Offre</span><span id="r-offre">—</span></div>
+    <div class="recap-ligne"><span>🗓️ Durée</span><span id="r-duree">—</span></div>
+    <div class="recap-ligne"><span>🏛️ Mutuelle</span><span id="r-nom">—</span></div>
+    <div class="recap-sep"></div>
     <div class="recap-total"><span>💰 TOTAL</span><span id="r-total">—</span></div>
   </div>
 
-  <!-- ERREUR -->
   <div class="err-box" id="err-box"></div>
 
-  <!-- BOUTON PAYER -->
   <button class="btn-payer" id="btn-payer" onclick="initierPaiement()" disabled>
     🔒 Payer et activer ma licence
   </button>
@@ -153,90 +151,138 @@
     <span class="moyen-badge">🟡 MTN MoMo</span>
     <span class="moyen-badge">🔵 Moov Money</span>
   </div>
+  <div class="secure-note">🔐 Paiement 100% sécurisé par GeniusPay · Vos données sont protégées</div>
 
-  <div class="secure-note">
-    🔐 Paiement 100% sécurisé par GeniusPay · Vos données sont protégées
-  </div>
-
-  <!-- LOADER -->
   <div class="loader" id="loader">
     <div class="spinner"></div>
     <div style="font-size:14px;color:#6B7280">Redirection vers la page de paiement…</div>
   </div>
-
-</div><!-- /container -->
+</div>
 
 <script>
-// ══════════════════════════════════════════════════════════════════
-//  CONFIG — À PERSONNALISER
-// ══════════════════════════════════════════════════════════════════
 const CONFIG = {
-  // Votre GAS CRM (reçoit la commande et génère la licence après paiement)
-  GAS_URL: 'https://script.google.com/macros/s/AKfycbyosxlsirNCISPyqg9P0ZdCT3vQthnoGcj0zFHer2cS0XfUHwjNEeWvwLTVL6wIo7g/exec',
-
-  // Clé publique GeniusPay (pk_live_...)
-  GENIUSPAY_KEY: 'pk_sandbox_O6i405PbFTgXkhpDRdxMadS4iM1Kv2a0',
-
-  // URL de cette page (pour redirection après paiement)
-  SUCCESS_URL: window.location.origin + 'https://kynsinvest-png.github.io/kynsdev-crm/kynsdev_confirmation.html',
-  ERROR_URL:   window.location.href + 'https://kynsinvest-png.github.io/kynsdev-crm/kynsdev_paiement.html?error=1',
+  GAS_URL:     'https://script.google.com/macros/s/AKfycbyosxlsirNCISPyqg9P0ZdCT3vQthnoGcj0zFHer2cS0XfUHwjNEeWvwLTVL6wIo7g/exec',
+  SUCCESS_URL: 'https://kynsinvest-png.github.io/kynsdev-crm/kynsdev_confirmation.html',
+  ERROR_URL:   'https://kynsinvest-png.github.io/kynsdev-crm/kynsdev_paiement.html?error=1',
 };
 
-// Offres disponibles
 const OFFRES = [
-  {id:'essentiel', nom:'Essentiel',  membres:'10 à 200 membres',  prix:2600,  badge:''},
-  {id:'confort',   nom:'Confort',    membres:'201 à 400 membres', prix:3600,  badge:''},
+  {id:'essentiel', nom:'Essentiel',  membres:'10 à 200 membres',  prix:2600},
+  {id:'confort',   nom:'Confort',    membres:'201 à 400 membres', prix:3600},
   {id:'premium',   nom:'Premium',    membres:'401 à 600 membres', prix:5100,  badge:'⭐ Populaire'},
-  {id:'entreprise',nom:'Entreprise', membres:'+ 600 membres',     prix:null,  badge:'Sur mesure'},
+  {id:'entreprise',nom:'Entreprise', membres:'+ 600 membres',     prix:null},
 ];
-
-// Durées disponibles (mois)
 const DUREES = [1, 3, 6, 12];
+const FRAIS_ACTIVATION = 15000;
 
-// ══════════════════════════════════════════════════════════════════
-let _offre   = null;
-let _mois    = 3; // défaut 3 mois
-let _total   = 0;
+let _offre      = null;
+let _mois       = 1;
+let _total      = 0;
+let _activation = null; // true = doit payer | false = déjà payé
 
-// Rendu des offres
+function selectActivation(doit) {
+  _activation = doit;
+  document.getElementById('btn-activ-oui').className = 'activ-btn' + (doit  ? ' selected-oui' : '');
+  document.getElementById('btn-activ-non').className = 'activ-btn' + (!doit ? ' selected-non' : '');
+  document.getElementById('activ-info').style.display = doit ? 'block' : 'none';
+  // Révéler les étapes suivantes
+  ['card-offre','card-duree','card-coords'].forEach(id=>{
+    document.getElementById(id).style.display = 'block';
+  });
+  renderOffres();
+  renderDurees();
+  majRecap();
+}
+
 function renderOffres(){
   const el = document.getElementById('offres-container');
   el.innerHTML = OFFRES.map(o=>`
     <label class="offre-card ${o.id===_offre?.id?'selected':''}" onclick="selectOffre('${o.id}')">
       <input type="radio" name="offre" value="${o.id}" ${o.id===_offre?.id?'checked':''}/>
       <div class="offre-top">
-        <div class="offre-nom">${o.nom} ${o.badge?`<span class="offre-badge pop">${o.badge}</span>`:''}</div>
+        <div class="offre-nom">${o.nom}${o.badge?` <span class="offre-badge">${o.badge}</span>`:''}</div>
         <div class="offre-prix">${o.prix ? o.prix.toLocaleString('fr-FR')+' F/mois' : '📞 Nous contacter'}</div>
       </div>
       <div class="offre-desc">👥 ${o.membres}</div>
     </label>`).join('');
 }
 
-// Rendu des durées
 function renderDurees(){
   const el = document.getElementById('mois-grid');
   el.innerHTML = DUREES.map(m=>{
-    const prix = _offre ? _offre.prix * m : 0;
-    const remise = m===12?'2 mois offerts':m===6?'1 mois offert':m===3?'Économisez 5%':'';
+    const total = _offre ? (_offre.prix * m).toLocaleString('fr-FR')+' F' : '';
     return `<div class="mois-btn ${m===_mois?'active':''}" onclick="selectMois(${m})">
-      ${m} mois
-      ${remise?`<small style="color:var(--green)">${remise}</small>`:''}
+      <div style="font-size:15px;font-weight:800">${m} mois</div>
+      ${total ? `<div style="font-size:11px;color:#6B7280;margin-top:2px">${total}</div>` : ''}
     </div>`;
   }).join('');
 }
 
+// ── VÉRIFICATION AUTOMATIQUE ACTIVATION ───────────────────────────
+let _verifTimer = null;
+let _verifEnCours = false;
+
+function verifierActivation(nom){
+  if(!nom || nom.trim().length < 3) return;
+  clearTimeout(_verifTimer);
+  _verifTimer = setTimeout(()=>{ _verifierActivationGAS(nom.trim().toUpperCase()); }, 800);
+}
+
+async function _verifierActivationGAS(nom){
+  if(_verifEnCours) return;
+  _verifEnCours = true;
+
+  const statusEl = document.getElementById('activ-status');
+  if(statusEl){ statusEl.textContent = '🔍 Vérification en cours…'; statusEl.style.color='#6B7280'; }
+
+  try {
+    const url = CONFIG.GAS_URL
+      + '?action=verifierActivation'
+      + '&nom=' + encodeURIComponent(nom)
+      + '&cb=_va_' + Date.now();
+
+    const resp = await fetch(url, {method:'GET', mode:'cors'});
+    const data = await resp.json();
+
+    if(data.activationPayee === true){
+      // Activation déjà payée → sélectionner automatiquement "Déjà payé"
+      selectActivation(false);
+      if(statusEl){
+        statusEl.textContent = '✅ Mise en service déjà payée pour cette mutuelle — renouvellement uniquement.';
+        statusEl.style.color = '#16A34A';
+      }
+      // Bloquer le choix "Première fois"
+      document.getElementById('btn-activ-oui').style.opacity = '0.4';
+      document.getElementById('btn-activ-oui').style.pointerEvents = 'none';
+      document.getElementById('btn-activ-oui').title = 'Déjà payé pour cette mutuelle';
+    } else {
+      // Réactiver le choix si changement de nom
+      document.getElementById('btn-activ-oui').style.opacity = '1';
+      document.getElementById('btn-activ-oui').style.pointerEvents = 'auto';
+      document.getElementById('btn-activ-oui').title = '';
+      if(statusEl && data.found === false){
+        statusEl.textContent = 'ℹ️ Nouvelle mutuelle — la mise en service est requise.';
+        statusEl.style.color = '#D97706';
+      } else if(statusEl){
+        statusEl.textContent = '';
+      }
+    }
+  } catch(e){
+    // Silencieux — l'utilisateur choisit manuellement si le GAS ne répond pas
+    if(statusEl) statusEl.textContent = '';
+    console.warn('[verifierActivation] GAS inaccessible:', e.message);
+  }
+  _verifEnCours = false;
+}
+
 function selectOffre(id){
   _offre = OFFRES.find(o=>o.id===id);
-  if(!_offre?.prix){ alert('Pour l\'offre Entreprise, contactez-nous : +225 07 13 43 58 73'); return; }
-  renderOffres();
-  renderDurees();
-  majRecap();
+  if(!_offre?.prix){ alert('Pour l\'offre Entreprise, contactez-nous : +225 07 13 43 58 73'); _offre=null; return; }
+  renderOffres(); majRecap();
 }
 
 function selectMois(m){
-  _mois = m;
-  renderDurees();
-  majRecap();
+  _mois = m; renderDurees(); majRecap();
 }
 
 function majRecap(){
@@ -246,28 +292,37 @@ function majRecap(){
   const errEl   = document.getElementById('err-box');
   errEl.style.display = 'none';
 
-  if(!_offre?.prix){ document.getElementById('btn-payer').disabled=true; return; }
+  if(_activation === null || !_offre?.prix){
+    document.getElementById('btn-payer').disabled = true;
+    document.getElementById('recap-box').style.display = 'none';
+    return;
+  }
 
-  // Calcul avec remises selon durée
-  let total = _offre.prix * _mois;
-  if(_mois===12) total = _offre.prix * 10; // 2 mois offerts
-  if(_mois===6)  total = _offre.prix * 5;  // 1 mois offert
-  if(_mois===3)  total = Math.round(_offre.prix * 3 * 0.95); // 5%
-  _total = total;
+  // Calcul total SANS réduction — prix fixe × durée
+  const abonnement = _offre.prix * _mois;
+  const activation = _activation ? FRAIS_ACTIVATION : 0;
+  _total = abonnement + activation;
 
-  // Afficher recap
+  // Recap
+  const rActivLigne = document.getElementById('r-activ-ligne');
+  rActivLigne.style.display = _activation ? 'flex' : 'none';
   document.getElementById('r-offre').textContent  = _offre.nom+' ('+_offre.membres+')';
-  document.getElementById('r-duree').textContent  = _mois+' mois';
+  document.getElementById('r-duree').textContent  = _mois+' mois — '+abonnement.toLocaleString('fr-FR')+' F';
   document.getElementById('r-nom').textContent    = nom||'—';
-  document.getElementById('r-total').textContent  = total.toLocaleString('fr-FR')+' FCFA';
-  document.getElementById('recap-box').style.display = _offre && nom ? 'block' : 'none';
+  document.getElementById('r-total').textContent  = _total.toLocaleString('fr-FR')+' FCFA';
+  document.getElementById('recap-box').style.display = nom ? 'block' : 'none';
 
-  // Activer le bouton si tout est rempli
-  const ok = _offre && nom && contact && tel;
+  const ok = _activation !== null && _offre && nom && contact && tel;
   document.getElementById('btn-payer').disabled = !ok;
 }
 
 async function initierPaiement(){
+  if(_activation === null){
+    const e = document.getElementById('err-box');
+    e.textContent = '⚠️ Veuillez indiquer si vous avez déjà payé les frais de mise en service.';
+    e.style.display = 'block'; return;
+  }
+
   const nom     = document.getElementById('f-nom').value.trim().toUpperCase();
   const contact = document.getElementById('f-contact').value.trim();
   const tel     = document.getElementById('f-tel').value.trim();
@@ -275,86 +330,65 @@ async function initierPaiement(){
   const errEl   = document.getElementById('err-box');
 
   if(!nom||!contact||!tel){
-    errEl.textContent='Veuillez remplir tous les champs obligatoires.';
-    errEl.style.display='block'; return;
+    errEl.textContent = 'Veuillez remplir tous les champs obligatoires.';
+    errEl.style.display = 'block'; return;
   }
 
-  // Calculer date expiration
   const exp = new Date();
   exp.setMonth(exp.getMonth() + _mois);
   const expStr = exp.toISOString().split('T')[0];
 
-  // Afficher loader
-  document.getElementById('loader').style.display='block';
-  document.getElementById('btn-payer').style.display='none';
+  document.getElementById('loader').style.display = 'block';
+  document.getElementById('btn-payer').style.display = 'none';
 
-  // Stocker les infos commande pour la confirmation
   sessionStorage.setItem('kyns_commande', JSON.stringify({
     nom, contact, tel, ville,
-    offre:    _offre.nom,
-    mois:     _mois,
-    total:    _total,
+    offre:      _offre.nom,
+    mois:       _mois,
+    total:      _total,
+    activation: _activation ? FRAIS_ACTIVATION : 0,
+    abonnement: _offre.prix * _mois,
     expiration: expStr,
   }));
 
   try{
-    // Appel GeniusPay pour créer le paiement
-    const resp = await fetch('https://pay.genius.ci/api/v1/merchant/payments', {
-      method: 'POST',
-      headers: {
-        'Content-Type':  'application/json',
-        'X-API-Key':     CONFIG.GENIUSPAY_KEY,
-        // ⚠️ La clé secrète NE DOIT PAS être ici côté client
-        // Elle doit être dans votre GAS (côté serveur)
-        // Ce POST transite par votre GAS proxy
-      },
-      body: JSON.stringify({
-        amount:      _total,
-        currency:    'XOF',
-        description: `Licence KynsGestAsso ${_offre.nom} ${_mois} mois — ${nom}`,
-        customer: {
-          name:  contact,
-          phone: tel,
-        },
-        success_url: CONFIG.SUCCESS_URL,
-        error_url:   CONFIG.ERROR_URL,
-        metadata: {
-          nom_mutuelle: nom,
-          contact,
-          tel,
-          ville,
-          offre:      _offre.id,
-          offre_nom:  _offre.nom,
-          nb_mois:    _mois,
-          expiration: expStr,
-          source:     'kynsdev_auto',
-        }
-      })
-    });
+    const gasUrl = CONFIG.GAS_URL
+      + '?action=creerPaiement'
+      + '&montant='      + encodeURIComponent(_total)
+      + '&description='  + encodeURIComponent('KynsDev — '+(_activation?'Activation + ':'')+_offre.nom+' '+_mois+'mois — '+nom)
+      + '&nom='          + encodeURIComponent(nom)
+      + '&contact='      + encodeURIComponent(contact)
+      + '&tel='          + encodeURIComponent(tel)
+      + '&ville='        + encodeURIComponent(ville)
+      + '&offre='        + encodeURIComponent(_offre.id)
+      + '&offre_nom='    + encodeURIComponent(_offre.nom)
+      + '&nb_mois='      + encodeURIComponent(_mois)
+      + '&expiration='   + encodeURIComponent(expStr)
+      + '&activation='   + encodeURIComponent(_activation ? FRAIS_ACTIVATION : 0)
+      + '&success_url='  + encodeURIComponent(CONFIG.SUCCESS_URL)
+      + '&error_url='    + encodeURIComponent(CONFIG.ERROR_URL)
+      + '&cb=_gp_'       + Date.now();
 
+    const resp = await fetch(gasUrl, {method:'GET', mode:'cors'});
     const data = await resp.json();
-    if(data.success && data.data?.checkout_url){
-      window.location.href = data.data.checkout_url;
+
+    if(data.checkout_url){
+      window.location.href = data.checkout_url;
     } else {
-      throw new Error(data.message || 'Erreur GeniusPay');
+      throw new Error(data.error || data.message || 'Erreur création paiement');
     }
   }catch(e){
-    document.getElementById('loader').style.display='none';
-    document.getElementById('btn-payer').style.display='flex';
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('btn-payer').style.display = 'flex';
     errEl.textContent = '❌ Erreur : '+e.message+'. Veuillez réessayer ou contacter le +225 07 13 43 58 73';
-    errEl.style.display='block';
+    errEl.style.display = 'block';
   }
 }
 
-// Init
-renderOffres();
-renderDurees();
-selectOffre('premium'); // Sélectionner Premium par défaut
-
-// Si erreur de paiement renvoyée
+// Vérifier si erreur de paiement renvoyée
 if(window.location.search.includes('error=1')){
-  document.getElementById('err-box').textContent='❌ Le paiement a échoué ou a été annulé. Vous pouvez réessayer.';
-  document.getElementById('err-box').style.display='block';
+  document.getElementById('err-box').textContent = '❌ Le paiement a échoué ou a été annulé. Vous pouvez réessayer.';
+  document.getElementById('err-box').style.display = 'block';
 }
 </script>
 </body>
