@@ -238,8 +238,7 @@ async function _verifierActivationGAS(nom){
   try {
     const url = CONFIG.GAS_URL
       + '?action=verifierActivation'
-      + '&nom=' + encodeURIComponent(nom)
-      + '&cb=_va_' + Date.now();
+      + '&nom=' + encodeURIComponent(nom);
 
     const resp = await fetch(url, {method:'GET', mode:'cors'});
     const data = await resp.json();
@@ -366,8 +365,7 @@ async function initierPaiement(){
       + '&expiration='   + encodeURIComponent(expStr)
       + '&activation='   + encodeURIComponent(_activation ? FRAIS_ACTIVATION : 0)
       + '&success_url='  + encodeURIComponent(CONFIG.SUCCESS_URL)
-      + '&error_url='    + encodeURIComponent(CONFIG.ERROR_URL)
-      + '&cb=_gp_'       + Date.now();
+      + '&error_url='    + encodeURIComponent(CONFIG.ERROR_URL);
 
     const resp = await fetch(gasUrl, {method:'GET', mode:'cors'});
     const data = await resp.json();
