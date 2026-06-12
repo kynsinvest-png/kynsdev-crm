@@ -106,8 +106,7 @@ async function verifierEtActiver(){
       +'&mois='+encodeURIComponent(commande.mois||'')
       +'&expiration='+encodeURIComponent(commande.expiration||'')
       +'&contact='+encodeURIComponent(commande.contact||'')
-      +'&total='+encodeURIComponent(commande.total||'')
-      +'&cb=_kyns_'+Date.now(),
+      +'&total='+encodeURIComponent(commande.total||''),
       {mode:'cors'}
     );
     const data = await resp.json();
@@ -117,7 +116,7 @@ async function verifierEtActiver(){
     } else {
       // GeniusPay peut prendre quelques secondes — réessayer 3 fois
       await attendre(4000);
-      const resp2 = await fetch(GAS_CRM_URL+'?action=activerLicence&reference='+encodeURIComponent(reference||'')+'&cb=_kyns_'+Date.now(), {mode:'cors'});
+      const resp2 = await fetch(GAS_CRM_URL+'?action=activerLicence&reference='+encodeURIComponent(reference||''), {mode:'cors'});
       const data2 = await resp2.json();
       if(data2.ok || data2.success) afficherSucces(data2, commande);
       else showView('error');
