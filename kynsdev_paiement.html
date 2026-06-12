@@ -235,6 +235,12 @@ async function _verifierActivationGAS(nom){
   const statusEl = document.getElementById('activ-status');
   if(statusEl){ statusEl.textContent = '🔍 Vérification en cours…'; statusEl.style.color='#6B7280'; }
 
+  // Réinitialiser l'état des boutons avant la vérification
+  document.getElementById('btn-activ-oui').style.opacity = '1';
+  document.getElementById('btn-activ-oui').style.pointerEvents = 'auto';
+  document.getElementById('btn-activ-non').style.opacity = '1';
+  document.getElementById('btn-activ-non').style.pointerEvents = 'auto';
+
   try {
     const url = CONFIG.GAS_URL
       + '?action=verifierActivation'
@@ -250,24 +256,39 @@ async function _verifierActivationGAS(nom){
         statusEl.textContent = '✅ Mise en service déjà payée pour cette mutuelle — renouvellement uniquement.';
         statusEl.style.color = '#16A34A';
       }
-      // Bloquer le choix "Première fois"
+      // Bloquer le choix "Première fois" — pas nécessaire
       document.getElementById('btn-activ-oui').style.opacity = '0.4';
       document.getElementById('btn-activ-oui').style.pointerEvents = 'none';
       document.getElementById('btn-activ-oui').title = 'Déjà payé pour cette mutuelle';
+      document.getElementById('btn-activ-non').style.opacity = '1';
+      document.getElementById('btn-activ-non').style.pointerEvents = 'auto';
+      document.getElementById('btn-activ-non').title = '';
     } else {
-      // Réactiver le choix si changement de nom
+      // ── Activation NON payée → OBLIGATOIRE ──
+      // (nouvelle mutuelle OU mutuelle existante sans activation enregistrée)
+      selectActivation(true);
+      // Bloquer "Déjà payé" — le client ne peut pas mentir
+      document.getElementById('btn-activ-non').style.opacity = '0.4';
+      document.getElementById('btn-activ-non').style.pointerEvents = 'none';
+      document.getElementById('btn-activ-non').title = 'Mise en service non payée pour cette mutuelle — obligatoire';
+      // "Première fois" reste actif (et sélectionné)
       document.getElementById('btn-activ-oui').style.opacity = '1';
       document.getElementById('btn-activ-oui').style.pointerEvents = 'auto';
       document.getElementById('btn-activ-oui').title = '';
+
       if(statusEl && data.found === false){
-        statusEl.textContent = 'ℹ️ Nouvelle mutuelle — la mise en service est requise.';
+        statusEl.textContent = 'ℹ️ Nouvelle mutuelle — la mise en service (15 000 F) est obligatoire pour le 1er paiement.';
         statusEl.style.color = '#D97706';
       } else if(statusEl){
-        statusEl.textContent = '';
+        statusEl.textContent = '⚠️ Mise en service non encore réglée pour cette mutuelle — obligatoire.';
+        statusEl.style.color = '#D97706';
       }
     }
   } catch(e){
-    // Silencieux — l'utilisateur choisit manuellement si le GAS ne répond pas
+    // Si le GAS est inaccessible → par sécurité, rendre l'activation obligatoire
+    selectActivation(true);
+    document.getElementById('btn-activ-non').style.opacity = '0.4';
+    document.getElementById('btn-activ-non').style.pointerEvents = 'none';
     if(statusEl) statusEl.textContent = '';
     console.warn('[verifierActivation] GAS inaccessible:', e.message);
   }
