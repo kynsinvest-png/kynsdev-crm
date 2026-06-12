@@ -248,6 +248,7 @@ async function _verifierActivationGAS(nom){
 
     const resp = await fetch(url, {method:'GET', mode:'cors'});
     const data = await resp.json();
+    console.log('[verifierActivation] Réponse GAS:', data); // debug
 
     if(data.activationPayee === true){
       // Activation déjà payée → sélectionner automatiquement "Déjà payé"
