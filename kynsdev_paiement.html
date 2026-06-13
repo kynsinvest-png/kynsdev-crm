@@ -72,12 +72,12 @@
   <div class="card">
     <div class="card-title">⚙️ Frais de mise en service</div>
     <p style="font-size:13px;color:#374151;margin-bottom:12px">
-      La mise en service est un <strong>paiement unique de 15 000 FCFA</strong>, valable à vie.
+      La mise en service est un <strong>paiement unique de <span id="activ-prix-texte">15 000</span> FCFA</strong>, valable à vie.
       Si vous l'avez déjà payé, sélectionnez "Déjà payé".
     </p>
     <div class="activ-toggle">
       <div class="activ-btn" id="btn-activ-oui" onclick="selectActivation(true)">
-        ⚙️ Je dois payer<br><span style="font-size:15px;font-weight:900;color:var(--blue)">15 000 F</span><br>
+        ⚙️ Je dois payer<br><span style="font-size:15px;font-weight:900;color:var(--blue)" id="activ-prix-affiche">15 000 F</span><br>
         <small style="font-weight:400;color:#6B7280">Première fois</small>
       </div>
       <div class="activ-btn" id="btn-activ-non" onclick="selectActivation(false)">
@@ -124,6 +124,20 @@
       <label>Ville</label>
       <input type="text" id="f-ville" placeholder="Abidjan, Bouaké…"/>
     </div>
+
+    <!-- CODE PROMO -->
+    <div class="field">
+      <label>🎁 Code promo (optionnel)</label>
+      <div style="display:flex;gap:8px">
+        <input type="text" id="f-promo" placeholder="Ex: KYNS2026"
+          style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"/>
+        <button type="button" onclick="appliquerPromo()"
+          style="padding:10px 16px;background:var(--purple);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap">
+          Appliquer
+        </button>
+      </div>
+      <div id="promo-status" style="font-size:12px;margin-top:6px;min-height:16px"></div>
+    </div>
   </div>
 
   <!-- RECAP -->
@@ -135,6 +149,9 @@
     <div class="recap-ligne"><span>📦 Offre</span><span id="r-offre">—</span></div>
     <div class="recap-ligne"><span>🗓️ Durée</span><span id="r-duree">—</span></div>
     <div class="recap-ligne"><span>🏛️ Mutuelle</span><span id="r-nom">—</span></div>
+    <div class="recap-ligne" id="r-promo-ligne" style="display:none;color:#86EFAC">
+      <span id="r-promo-label">🎁 Code promo</span><span id="r-promo">—</span>
+    </div>
     <div class="recap-sep"></div>
     <div class="recap-total"><span>💰 TOTAL</span><span id="r-total">—</span></div>
   </div>
@@ -166,19 +183,49 @@ const CONFIG = {
   ERROR_URL:   'https://kynsinvest-png.github.io/kynsdev-crm/kynsdev_paiement.html?error=1',
 };
 
-const OFFRES = [
+// Valeurs par défaut (utilisées en attendant le chargement depuis Sheets,
+// ou si le GAS est inaccessible)
+let OFFRES = [
   {id:'essentiel', nom:'Essentiel',  membres:'10 à 200 membres',  prix:2600},
   {id:'confort',   nom:'Confort',    membres:'201 à 400 membres', prix:3600},
   {id:'premium',   nom:'Premium',    membres:'401 à 600 membres', prix:5100,  badge:'⭐ Populaire'},
   {id:'entreprise',nom:'Entreprise', membres:'+ 600 membres',     prix:null},
 ];
 const DUREES = [1, 3, 6, 12];
-const FRAIS_ACTIVATION = 15000;
+let FRAIS_ACTIVATION = 15000;
+let _tarifsCharges = false;
+
+// ── CHARGER LES TARIFS DEPUIS GOOGLE SHEETS (modifiable par KynsDev) ──
+async function chargerTarifs(){
+  try{
+    const resp = await fetch(CONFIG.GAS_URL + '?action=getTarifs', {method:'GET', mode:'cors'});
+    const data = await resp.json();
+    if(data.ok && Array.isArray(data.offres) && data.offres.length){
+      OFFRES = data.offres;
+      if(data.activation) FRAIS_ACTIVATION = data.activation;
+      _tarifsCharges = true;
+      // Mettre à jour l'affichage si déjà rendu
+      renderOffres();
+      renderDurees();
+      // Mettre à jour le prix affiché dans la carte activation
+      const elPrix = document.getElementById('activ-prix-affiche');
+      if(elPrix) elPrix.textContent = FRAIS_ACTIVATION.toLocaleString('fr-FR')+' F';
+      const elTexte = document.getElementById('activ-prix-texte');
+      if(elTexte) elTexte.textContent = FRAIS_ACTIVATION.toLocaleString('fr-FR');
+      majRecap();
+    }
+  }catch(e){
+    console.warn('[chargerTarifs] GAS inaccessible, valeurs par défaut utilisées:', e.message);
+  }
+}
 
 let _offre      = null;
 let _mois       = 1;
 let _total      = 0;
 let _activation = null; // true = doit payer | false = déjà payé
+let _promo      = null; // {code, type, valeur, label} si appliqué
+let _promoTimer = null;
+let _moisGratuits = 0;
 
 function selectActivation(doit) {
   _activation = doit;
@@ -306,6 +353,55 @@ function selectMois(m){
   _mois = m; renderDurees(); majRecap();
 }
 
+// ── CODE PROMO ────────────────────────────────────────────────────
+async function appliquerPromo(){
+  const code = document.getElementById('f-promo').value.trim().toUpperCase();
+  const statusEl = document.getElementById('promo-status');
+
+  if(!code){
+    _promo = null;
+    statusEl.textContent = '';
+    majRecap();
+    return;
+  }
+
+  statusEl.textContent = '🔍 Vérification du code…';
+  statusEl.style.color = '#6B7280';
+
+  try {
+    const url = CONFIG.GAS_URL + '?action=verifierPromo&code=' + encodeURIComponent(code);
+    const resp = await fetch(url, {method:'GET', mode:'cors'});
+    const data = await resp.json();
+
+    if(data.valide){
+      _promo = {
+        code:   code,
+        type:   data.type,    // 'percent' | 'fixe' | 'mois_gratuits'
+        valeur: Number(data.valeur),
+        label:  data.label || '',
+      };
+      let txt = '✅ Code valide';
+      if(data.type==='percent')       txt += ' — '+data.valeur+'% de réduction';
+      if(data.type==='fixe')          txt += ' — '+Number(data.valeur).toLocaleString('fr-FR')+'F de réduction';
+      if(data.type==='mois_gratuits') txt += ' — '+data.valeur+' mois gratuit(s) offert(s)';
+      if(data.label) txt += ' ('+data.label+')';
+      statusEl.textContent = txt;
+      statusEl.style.color = '#16A34A';
+    } else {
+      _promo = null;
+      statusEl.textContent = '❌ '+(data.message || 'Code promo invalide ou expiré');
+      statusEl.style.color = '#DC2626';
+    }
+  } catch(e){
+    _promo = null;
+    statusEl.textContent = '⚠️ Impossible de vérifier le code pour le moment';
+    statusEl.style.color = '#D97706';
+    console.warn('[appliquerPromo]', e.message);
+  }
+
+  majRecap();
+}
+
 function majRecap(){
   const nom     = document.getElementById('f-nom').value.trim();
   const contact = document.getElementById('f-contact').value.trim();
@@ -322,13 +418,43 @@ function majRecap(){
   // Calcul total SANS réduction — prix fixe × durée
   const abonnement = _offre.prix * _mois;
   const activation = _activation ? FRAIS_ACTIVATION : 0;
-  _total = abonnement + activation;
+  let total = abonnement + activation;
+
+  // ── Appliquer le code promo (si valide) ──
+  let promoLigneTxt = '';
+  let moisGratuits  = 0;
+  if(_promo){
+    if(_promo.type === 'percent'){
+      const remise = Math.round(abonnement * (_promo.valeur/100));
+      total -= remise;
+      promoLigneTxt = '-'+_promo.valeur+'% = -'+remise.toLocaleString('fr-FR')+' F';
+    } else if(_promo.type === 'fixe'){
+      const remise = Math.min(_promo.valeur, abonnement);
+      total -= remise;
+      promoLigneTxt = '-'+remise.toLocaleString('fr-FR')+' F';
+    } else if(_promo.type === 'mois_gratuits'){
+      moisGratuits = _promo.valeur;
+      promoLigneTxt = '+'+moisGratuits+' mois gratuit'+(moisGratuits>1?'s':'')+' offert'+(moisGratuits>1?'s':'');
+    }
+  }
+  _total = Math.max(total, 0);
+  _moisGratuits = moisGratuits;
+
+  // Afficher la ligne promo
+  const rPromoLigne = document.getElementById('r-promo-ligne');
+  if(_promo){
+    rPromoLigne.style.display = 'flex';
+    document.getElementById('r-promo-label').textContent = '🎁 '+_promo.code;
+    document.getElementById('r-promo').textContent = promoLigneTxt;
+  } else {
+    rPromoLigne.style.display = 'none';
+  }
 
   // Recap
   const rActivLigne = document.getElementById('r-activ-ligne');
   rActivLigne.style.display = _activation ? 'flex' : 'none';
   document.getElementById('r-offre').textContent  = _offre.nom+' ('+_offre.membres+')';
-  document.getElementById('r-duree').textContent  = _mois+' mois — '+abonnement.toLocaleString('fr-FR')+' F';
+  document.getElementById('r-duree').textContent  = _mois+' mois'+(moisGratuits?' + '+moisGratuits+' offert(s)':'')+' — '+abonnement.toLocaleString('fr-FR')+' F';
   document.getElementById('r-nom').textContent    = nom||'—';
   document.getElementById('r-total').textContent  = _total.toLocaleString('fr-FR')+' FCFA';
   document.getElementById('recap-box').style.display = nom ? 'block' : 'none';
@@ -355,8 +481,10 @@ async function initierPaiement(){
     errEl.style.display = 'block'; return;
   }
 
+  // nb_mois total facturé à la licence = mois payés + mois gratuits promo
+  const moisTotal = _mois + (_moisGratuits||0);
   const exp = new Date();
-  exp.setMonth(exp.getMonth() + _mois);
+  exp.setMonth(exp.getMonth() + moisTotal);
   const expStr = exp.toISOString().split('T')[0];
 
   document.getElementById('loader').style.display = 'block';
@@ -366,26 +494,29 @@ async function initierPaiement(){
     nom, contact, tel, ville,
     offre:      _offre.nom,
     mois:       _mois,
+    moisTotal:  moisTotal,
     total:      _total,
     activation: _activation ? FRAIS_ACTIVATION : 0,
     abonnement: _offre.prix * _mois,
     expiration: expStr,
+    promo:      _promo ? _promo.code : '',
   }));
 
   try{
     const gasUrl = CONFIG.GAS_URL
       + '?action=creerPaiement'
       + '&montant='      + encodeURIComponent(_total)
-      + '&description='  + encodeURIComponent('KynsDev — '+(_activation?'Activation + ':'')+_offre.nom+' '+_mois+'mois — '+nom)
+      + '&description='  + encodeURIComponent('KynsDev — '+(_activation?'Activation + ':'')+_offre.nom+' '+_mois+'mois'+(_promo?' [PROMO:'+_promo.code+']':'')+' — '+nom)
       + '&nom='          + encodeURIComponent(nom)
       + '&contact='      + encodeURIComponent(contact)
       + '&tel='          + encodeURIComponent(tel)
       + '&ville='        + encodeURIComponent(ville)
       + '&offre='        + encodeURIComponent(_offre.id)
       + '&offre_nom='    + encodeURIComponent(_offre.nom)
-      + '&nb_mois='      + encodeURIComponent(_mois)
+      + '&nb_mois='      + encodeURIComponent(moisTotal)
       + '&expiration='   + encodeURIComponent(expStr)
       + '&activation='   + encodeURIComponent(_activation ? FRAIS_ACTIVATION : 0)
+      + '&promo='        + encodeURIComponent(_promo ? _promo.code : '')
       + '&success_url='  + encodeURIComponent(CONFIG.SUCCESS_URL)
       + '&error_url='    + encodeURIComponent(CONFIG.ERROR_URL);
 
@@ -410,6 +541,9 @@ if(window.location.search.includes('error=1')){
   document.getElementById('err-box').textContent = '❌ Le paiement a échoué ou a été annulé. Vous pouvez réessayer.';
   document.getElementById('err-box').style.display = 'block';
 }
+
+// Charger les tarifs depuis Google Sheets (modifiables par KynsDev)
+chargerTarifs();
 </script>
 </body>
 </html>
