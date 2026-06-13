@@ -96,6 +96,29 @@ async function verifierEtActiver(){
     showView('error'); return;
   }
 
+  // ── ACHAT PACK SMS ──
+  if(commande.type === 'sms_pack'){
+    try{
+      const resp = await fetch(GAS_CRM_URL+'?action=activerAchatSms'
+        +'&reference='+encodeURIComponent(reference||'')
+        +'&nom='+encodeURIComponent(commande.nom||'')
+        +'&tel='+encodeURIComponent(commande.tel||'')
+        +'&contact='+encodeURIComponent(commande.contact||'')
+        +'&sms_qty='+encodeURIComponent(commande.sms_qty||'')
+        +'&total='+encodeURIComponent(commande.total||''),
+        {mode:'cors'}
+      );
+      const data = await resp.json();
+      if(data.ok) afficherSuccesSms(commande);
+      else if(reference || status==='success') afficherSuccesSms(commande);
+      else showView('error');
+    }catch(e){
+      if(reference || status==='success') afficherSuccesSms(commande);
+      else showView('error');
+    }
+    return;
+  }
+
   // Appeler le GAS pour vérifier le paiement et activer la licence
   try{
     const resp = await fetch(GAS_CRM_URL+'?action=activerLicence'
@@ -129,6 +152,17 @@ async function verifierEtActiver(){
       showView('error');
     }
   }
+}
+
+function afficherSuccesSms(cmd){
+  showView('success');
+  document.getElementById('recap-details').innerHTML = `
+    <div class="info-ligne"><span>Mutuelle</span><span class="info-val">${cmd.nom||'—'}</span></div>
+    <div class="info-ligne"><span>Pack acheté</span><span class="info-val">${Number(cmd.sms_qty||0).toLocaleString('fr-FR')} SMS</span></div>
+    <div class="info-ligne"><span>Montant payé</span><span class="info-val">${Number(cmd.total||0).toLocaleString('fr-FR')} FCFA</span></div>
+  `;
+  const msgWa = `Bonjour KynsDev 👋\nJ'ai acheté un pack SMS.\nMutuelle : ${cmd.nom||'—'}\nPack : ${cmd.sms_qty||'—'} SMS\nMontant : ${Number(cmd.total||0).toLocaleString('fr-FR')} FCFA\nRéférence : ${reference||'—'}`;
+  document.getElementById('btn-wa').href = `https://wa.me/2250713435873?text=${encodeURIComponent(msgWa)}`;
 }
 
 function afficherSucces(data, cmd){
