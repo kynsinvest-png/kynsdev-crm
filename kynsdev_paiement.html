@@ -46,6 +46,8 @@
   .mois-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:8px}
   .mois-btn{border:2px solid var(--border);border-radius:8px;padding:10px 4px;text-align:center;cursor:pointer;font-size:13px;font-weight:700;transition:.15s}
   .mois-btn.active{border-color:var(--blue);background:#EFF6FF;color:var(--blue)}
+  .tab-btn{color:#6B7280}
+  .tab-btn.tab-active{background:var(--navy);color:#fff}
   /* Activation */
   .activ-toggle{display:flex;gap:10px;margin-top:8px}
   .activ-btn{flex:1;padding:12px;border:2px solid var(--border);border-radius:10px;cursor:pointer;font-size:13px;font-weight:700;text-align:center;background:#fff;transition:.15s}
@@ -63,10 +65,25 @@
 </div>
 
 <div class="container">
-  <div style="text-align:center;margin-bottom:24px">
-    <div style="font-size:24px;font-weight:900;color:var(--navy)">Activez votre licence</div>
+  <div style="text-align:center;margin-bottom:18px">
+    <div style="font-size:24px;font-weight:900;color:var(--navy)">Espace Paiement KynsDev</div>
     <div style="font-size:14px;color:#6B7280;margin-top:6px">KynsGestAsso — Gestion de mutuelle & association</div>
   </div>
+
+  <!-- TABS -->
+  <div style="display:flex;gap:8px;margin-bottom:18px;background:#fff;border-radius:12px;padding:6px;box-shadow:0 2px 10px rgba(0,0,0,0.05)">
+    <div id="tab-licence" class="tab-btn tab-active" onclick="switchTab('licence')"
+      style="flex:1;text-align:center;padding:10px;border-radius:9px;cursor:pointer;font-weight:700;font-size:13px;transition:.15s">
+      🔑 Licence
+    </div>
+    <div id="tab-sms" class="tab-btn" onclick="switchTab('sms')"
+      style="flex:1;text-align:center;padding:10px;border-radius:9px;cursor:pointer;font-weight:700;font-size:13px;transition:.15s">
+      💬 Pack SMS
+    </div>
+  </div>
+
+  <!-- ═══════════ ONGLET LICENCE ═══════════ -->
+  <div id="panel-licence">
 
   <!-- ÉTAPE 1 : ACTIVATION (obligatoire) -->
   <div class="card">
@@ -174,6 +191,68 @@
     <div class="spinner"></div>
     <div style="font-size:14px;color:#6B7280">Redirection vers la page de paiement…</div>
   </div>
+
+  </div><!-- /panel-licence -->
+
+  <!-- ═══════════ ONGLET PACK SMS ═══════════ -->
+  <div id="panel-sms" style="display:none">
+
+    <div class="card">
+      <div class="card-title">💬 Choisissez votre pack SMS</div>
+      <p style="font-size:13px;color:#374151;margin-bottom:12px">
+        Les SMS servent à notifier vos membres (rappels de cotisation, convocations AG, etc.)
+        depuis votre application KynsGestAsso.
+      </p>
+      <div class="offres" id="sms-packs-container"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">👤 Vos coordonnées</div>
+      <div class="field">
+        <label>Nom de votre mutuelle / association *</label>
+        <input type="text" id="sms-nom" placeholder="Ex: MUTUELLE SANTA" oninput="majRecapSms()"/>
+      </div>
+      <div class="field">
+        <label>Nom du responsable *</label>
+        <input type="text" id="sms-contact" placeholder="Ex: KOUAME Jean-Pierre" oninput="majRecapSms()"/>
+      </div>
+      <div class="field">
+        <label>Numéro WhatsApp *</label>
+        <input type="tel" id="sms-tel" placeholder="+225 07 XX XX XX XX" oninput="majRecapSms()"/>
+        <div class="hint">La confirmation d'achat sera envoyée par SMS sur ce numéro</div>
+      </div>
+    </div>
+
+    <!-- RECAP SMS -->
+    <div class="recap" id="sms-recap-box">
+      <div class="recap-ligne"><span>💬 Pack</span><span id="sms-r-pack">—</span></div>
+      <div class="recap-ligne"><span>🔢 Quantité</span><span id="sms-r-qty">—</span></div>
+      <div class="recap-ligne"><span>🏛️ Mutuelle</span><span id="sms-r-nom">—</span></div>
+      <div class="recap-sep"></div>
+      <div class="recap-total"><span>💰 TOTAL</span><span id="sms-r-total">—</span></div>
+    </div>
+
+    <div class="err-box" id="sms-err-box"></div>
+
+    <button class="btn-payer" id="sms-btn-payer" onclick="initierAchatSms()" disabled>
+      🔒 Payer mon pack SMS
+    </button>
+
+    <div class="moyens">
+      <span class="moyen-badge">📱 Wave</span>
+      <span class="moyen-badge">🟠 Orange Money</span>
+      <span class="moyen-badge">🟡 MTN MoMo</span>
+      <span class="moyen-badge">🔵 Moov Money</span>
+    </div>
+    <div class="secure-note">🔐 Paiement 100% sécurisé par GeniusPay · Vos données sont protégées</div>
+
+    <div class="loader" id="sms-loader">
+      <div class="spinner"></div>
+      <div style="font-size:14px;color:#6B7280">Redirection vers la page de paiement…</div>
+    </div>
+
+  </div><!-- /panel-sms -->
+
 </div>
 
 <script>
@@ -540,6 +619,138 @@ async function initierPaiement(){
 if(window.location.search.includes('error=1')){
   document.getElementById('err-box').textContent = '❌ Le paiement a échoué ou a été annulé. Vous pouvez réessayer.';
   document.getElementById('err-box').style.display = 'block';
+}
+
+// ══════════════════════════════════════════════════════════════════
+// 💬 PACK SMS
+// ══════════════════════════════════════════════════════════════════
+let _smsPacks  = [];
+let _smsPack   = null;
+let _smsTotal  = 0;
+
+function switchTab(tab){
+  const isLic = tab === 'licence';
+  document.getElementById('tab-licence').classList.toggle('tab-active', isLic);
+  document.getElementById('tab-sms').classList.toggle('tab-active', !isLic);
+  document.getElementById('panel-licence').style.display = isLic ? 'block' : 'none';
+  document.getElementById('panel-sms').style.display     = isLic ? 'none'  : 'block';
+  if(!isLic && _smsPacks.length === 0) chargerTarifsSms();
+}
+
+async function chargerTarifsSms(){
+  try {
+    const resp = await fetch(CONFIG.GAS_URL + '?action=getTarifsSms', {method:'GET', mode:'cors'});
+    const data = await resp.json();
+    if(data.ok && Array.isArray(data.packs) && data.packs.length){
+      _smsPacks = data.packs;
+    } else {
+      throw new Error('Réponse invalide');
+    }
+  } catch(e){
+    console.warn('[chargerTarifsSms] GAS inaccessible, valeurs par défaut utilisées:', e.message);
+    _smsPacks = [
+      {id:'pack60',  sms:60,  prix:1300,  badge:''},
+      {id:'pack150', sms:150, prix:3000,  badge:'⭐ Populaire'},
+      {id:'pack750', sms:750, prix:15000, badge:'Meilleur tarif'},
+    ];
+  }
+  renderSmsPacks();
+}
+
+function renderSmsPacks(){
+  const el = document.getElementById('sms-packs-container');
+  el.innerHTML = _smsPacks.map(p=>{
+    const unitPrice = (p.prix / p.sms);
+    return `<label class="offre-card ${p.id===_smsPack?.id?'selected':''}" onclick="selectSmsPack('${p.id}')">
+      <input type="radio" name="smspack" value="${p.id}" ${p.id===_smsPack?.id?'checked':''}/>
+      <div class="offre-top">
+        <div class="offre-nom">📩 ${p.sms.toLocaleString('fr-FR')} SMS${p.badge?` <span class="offre-badge">${p.badge}</span>`:''}</div>
+        <div class="offre-prix">${p.prix.toLocaleString('fr-FR')} F</div>
+      </div>
+      <div class="offre-desc">≈ ${unitPrice.toFixed(1)} F / SMS</div>
+    </label>`;
+  }).join('');
+}
+
+function selectSmsPack(id){
+  _smsPack = _smsPacks.find(p=>p.id===id);
+  renderSmsPacks();
+  majRecapSms();
+}
+
+function majRecapSms(){
+  const nom     = document.getElementById('sms-nom').value.trim();
+  const contact = document.getElementById('sms-contact').value.trim();
+  const tel     = document.getElementById('sms-tel').value.trim();
+  const errEl   = document.getElementById('sms-err-box');
+  errEl.style.display = 'none';
+
+  if(!_smsPack){
+    document.getElementById('sms-btn-payer').disabled = true;
+    document.getElementById('sms-recap-box').style.display = 'none';
+    return;
+  }
+
+  _smsTotal = _smsPack.prix;
+
+  document.getElementById('sms-r-pack').textContent  = _smsPack.sms.toLocaleString('fr-FR')+' SMS';
+  document.getElementById('sms-r-qty').textContent   = _smsPack.sms.toLocaleString('fr-FR')+' SMS';
+  document.getElementById('sms-r-nom').textContent   = nom||'—';
+  document.getElementById('sms-r-total').textContent = _smsTotal.toLocaleString('fr-FR')+' FCFA';
+  document.getElementById('sms-recap-box').style.display = nom ? 'block' : 'none';
+
+  const ok = _smsPack && nom && contact && tel;
+  document.getElementById('sms-btn-payer').disabled = !ok;
+}
+
+async function initierAchatSms(){
+  const nom     = document.getElementById('sms-nom').value.trim().toUpperCase();
+  const contact = document.getElementById('sms-contact').value.trim();
+  const tel     = document.getElementById('sms-tel').value.trim();
+  const errEl   = document.getElementById('sms-err-box');
+
+  if(!_smsPack || !nom || !contact || !tel){
+    errEl.textContent = 'Veuillez remplir tous les champs obligatoires.';
+    errEl.style.display = 'block'; return;
+  }
+
+  document.getElementById('sms-loader').style.display = 'block';
+  document.getElementById('sms-btn-payer').style.display = 'none';
+
+  sessionStorage.setItem('kyns_commande', JSON.stringify({
+    type:    'sms_pack',
+    nom, contact, tel,
+    sms_qty: _smsPack.sms,
+    total:   _smsTotal,
+  }));
+
+  try{
+    const gasUrl = CONFIG.GAS_URL
+      + '?action=creerPaiement'
+      + '&type='         + encodeURIComponent('sms_pack')
+      + '&montant='      + encodeURIComponent(_smsTotal)
+      + '&description='  + encodeURIComponent('KynsDev — Pack '+_smsPack.sms+' SMS — '+nom)
+      + '&nom='          + encodeURIComponent(nom)
+      + '&contact='      + encodeURIComponent(contact)
+      + '&tel='          + encodeURIComponent(tel)
+      + '&sms_qty='      + encodeURIComponent(_smsPack.sms)
+      + '&success_url='  + encodeURIComponent(CONFIG.SUCCESS_URL)
+      + '&error_url='    + encodeURIComponent(CONFIG.ERROR_URL);
+
+    const resp = await fetch(gasUrl, {method:'GET', mode:'cors'});
+    const data = await resp.json();
+
+    if(data.checkout_url){
+      window.location.href = data.checkout_url;
+    } else {
+      throw new Error(data.error || data.message || 'Erreur création paiement');
+    }
+  }catch(e){
+    document.getElementById('sms-loader').style.display = 'none';
+    document.getElementById('sms-btn-payer').style.display = 'flex';
+    errEl.textContent = '❌ Erreur : '+e.message+'. Veuillez réessayer ou contacter le +225 07 13 43 58 73';
+    errEl.style.display = 'block';
+  }
 }
 
 // Charger les tarifs depuis Google Sheets (modifiables par KynsDev)
